@@ -1,0 +1,21 @@
+{
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "project428",
+    "workspaceFolder": "/home/user/project428",
+    "shutdownAction": "stopCompose",
+  
+    "customizations": {
+      "vscode": {
+        "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.cpptools",
+        "twxs.cmake",
+        "ms-vscode.cpptools-extension-pack",
+        "njpwerner.autodocstring"
+      ]
+      }
+    },
+  
+    "forwardPorts": [3000]
+  }

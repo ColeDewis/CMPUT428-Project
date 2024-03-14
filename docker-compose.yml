@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  project428:
+    container_name: project428
+    working_dir: /home/user/project428
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    network_mode: host
+    tty: true
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - ../project428:/home/user/project428
+      - /tmp/.X11-unix:/tmp/.X11-unix

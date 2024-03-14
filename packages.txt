@@ -1,0 +1,9 @@
+ros-noetic-rviz 
+ros-noetic-xacro
+ros-noetic-tf2-tools
+ros-noetic-rqt
+git 
+python3-pip
+python3-tk
+tmux
+v4l-utils
