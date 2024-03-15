@@ -7,3 +7,12 @@ python3-pip
 python3-tk
 tmux
 v4l-utils
+ros-noetic-moveit-commander
+ros-noetic-moveit-planners-ompl
+ros-noetic-moveit-fake-controller-manager
+ros-noetic-moveit-ros-control-interface
+ros-noetic-moveit-simple-controller-manager
+ros-noetic-moveit-ros-visualization
+ros-noetic-moveit-setup-assistant
+ros-noetic-ros-control
+ros-noetic-ros-controllers
