@@ -16,3 +16,4 @@ ros-noetic-moveit-ros-visualization
 ros-noetic-moveit-setup-assistant
 ros-noetic-ros-control
 ros-noetic-ros-controllers
+ros-noetic-moveit-ros-planning-interface

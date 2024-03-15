@@ -13,6 +13,5 @@ services:
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
-      - ../project428:/home/user/project428
       - /tmp/.X11-unix:/tmp/.X11-unix
       - ../CMPUT428-Project:/home/user/project428
