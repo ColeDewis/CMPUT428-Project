@@ -195,6 +195,7 @@ catkin_package(
 
 catkin_install_python(PROGRAMS
   nodes/camera_node.py
+  nodes/tracking_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -14,13 +14,15 @@ class CameraNode:
     def __init__(self):
         """Initialize a camera node by getting the rosparam and opening the opencv stream."""
         
-        rospy.init_node("camera_node")
+        rospy.init_node("camera_node", anonymous=True)
         cam_param = rospy.search_param("cam_idx")
         self.cam_idx = rospy.get_param(cam_param, None)
         
         if self.cam_idx is None:
             rospy.logwarn("Must pass camera index as _cam_idx:=<cam_idx>")
             exit()
+        
+        # node_name = f"camera_node{self.cam_idx}"
     
         rospy.delete_param(cam_param) # delete param so its needed for future runs.
         rospy.loginfo(f"Initialized Camera on topic /cameras/cam{self.cam_idx}")
@@ -47,7 +49,7 @@ class CameraNode:
         # timer for image update
         rospy.Timer(rospy.Duration(0.1), self.update_callback)
         
-        self.init_trackers(None)
+        # self.init_trackers(None)
         
         
     def update_callback(self, event=None):
@@ -61,11 +63,12 @@ class CameraNode:
         # convert image color format and publish
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         image: Image = self.bridge.cv2_to_imgmsg(cvim=frame, encoding="rgb8")
+        image.header.frame_id = f"{self.cam_idx}"
         self.image_pub.publish(image)
         
         
-        if self.trackers_running:
-            self.update_trackers(frame)
+        # if self.trackers_running:
+        #     self.update_trackers(frame)
             
         self.last_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
