@@ -14,6 +14,8 @@ class CustomGUI(Plugin):
         super(CustomGUI, self).__init__(context)
         # Give QObjects reasonable names
         self.setObjectName('CustomGui')
+        self.layout = QVBoxLayout()
+        
 
         # Process standalone plugin command-line arguments
         from argparse import ArgumentParser
@@ -27,28 +29,29 @@ class CustomGUI(Plugin):
             print('arguments: ', args)
             
         # Create QWidget
-        '''self._widget = QWidget()
+        self._widget = MyWidget()
         # Get path to UI file which should be in the "resource" folder of this package
-        ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'CustomGUI.ui')
+        #ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
         # Extend the widget with all attributes and children from UI file
-        loadUi(ui_file, self._widget)
+        #loadUi(ui_file, self._widget)
         # Give QObjects reasonable names
-        self._widget.setObjectName('CustomGuiUi')
+        #self._widget.setObjectName('CustomGuiUi')
         # Show _widget.windowTitle on left-top of each plugin (when 
         # it's set in _widget). This is useful when you open multiple 
         # plugins at once. Also if you open multiple instances of your 
         # plugin at once, these lines add number to make it easy to 
         # tell from pane to pane.
-        if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
+        #if context.serial_number() > 1:
+        #    self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         # Add widget to the user interface
         context.add_widget(self._widget)
-        button = self._widget.Test'''
+        #button = self._widget.Test
 
-        self._widget = MyWidget()
-        print("MyWidget instance created")
-
-        self._widget.show()
+        
+        #self._widget.show()
+        
+        
+        
 
 
     def shutdown_plugin(self):
@@ -77,14 +80,17 @@ class MyWidget(QWidget):
     
         def load_ui(self):
             
-            ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'CustomGUI.ui')
+            ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
             #ui_file = QFile(path)
             #ui_file.open(QFile.ReadOnly)
             self.ui = loadUi(ui_file, self)
-            self.ui.show()
+            #self.ui.show()
             #ui_file.close()
+
+            
+
     
-            self.ui.Test.clicked.connect(self.testClicked)
+            self.ui.FPButton.clicked.connect(self.testClicked)
             
         def testClicked(self):
             print("Nice")
