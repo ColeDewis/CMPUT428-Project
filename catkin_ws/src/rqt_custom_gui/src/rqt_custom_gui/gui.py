@@ -2,9 +2,11 @@ import os
 import rospy
 import rospkg
 
-from qt_gui.plugin import Plugin
+#from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget
+#from python_qt_binding.QtWidgets import QWidget
+from rqt_gui_py.plugin import Plugin
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
 
 class CustomGUI(Plugin):
 
@@ -23,10 +25,9 @@ class CustomGUI(Plugin):
         args, unknowns = parser.parse_known_args(context.argv())
         if not args.quiet:
             print('arguments: ', args)
-            print('unknowns: ', unknowns)
-
+            
         # Create QWidget
-        self._widget = QWidget()
+        '''self._widget = QWidget()
         # Get path to UI file which should be in the "resource" folder of this package
         ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'CustomGUI.ui')
         # Extend the widget with all attributes and children from UI file
@@ -42,6 +43,13 @@ class CustomGUI(Plugin):
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         # Add widget to the user interface
         context.add_widget(self._widget)
+        button = self._widget.Test'''
+
+        self._widget = MyWidget()
+        print("MyWidget instance created")
+
+        self._widget.show()
+
 
     def shutdown_plugin(self):
         # TODO unregister all publishers here
@@ -61,3 +69,22 @@ class CustomGUI(Plugin):
         # Comment in to signal that the plugin has a way to configure
         # This will enable a setting button (gear icon) in each dock widget title bar
         # Usually used to open a modal configuration dialog
+    
+class MyWidget(QWidget):
+        def __init__(self):
+            super(MyWidget, self).__init__()
+            self.load_ui()
+    
+        def load_ui(self):
+            
+            ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'CustomGUI.ui')
+            #ui_file = QFile(path)
+            #ui_file.open(QFile.ReadOnly)
+            self.ui = loadUi(ui_file, self)
+            self.ui.show()
+            #ui_file.close()
+    
+            self.ui.Test.clicked.connect(self.testClicked)
+            
+        def testClicked(self):
+            print("Nice")
