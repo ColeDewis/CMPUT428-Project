@@ -36,7 +36,6 @@ class ImgPubNode:
         self.image_pub.publish(self.image)
 
 def main(args):
-    rospy.sleep(3) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
     rospy.loginfo("Starting a ImgPubNode ...")
     node = ImgPubNode()
     
