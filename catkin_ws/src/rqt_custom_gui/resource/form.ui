@@ -133,10 +133,10 @@
   <widget class="QPushButton" name="GoButton">
    <property name="geometry">
     <rect>
-     <x>730</x>
+     <x>682</x>
      <y>40</y>
-     <width>83</width>
-     <height>51</height>
+     <width>131</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
@@ -171,6 +171,19 @@
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QPushButton" name="ResetButton">
+   <property name="geometry">
+    <rect>
+     <x>680</x>
+     <y>80</y>
+     <width>131</width>
+     <height>31</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
   </widget>
  </widget>
  <resources/>
