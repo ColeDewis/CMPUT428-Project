@@ -186,6 +186,9 @@ catkin_package(
 #   PATTERN ".svn" EXCLUDE
 # )
 
+install(DIRECTORY img/
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
+
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
 #   # myfile1
@@ -196,6 +199,7 @@ catkin_package(
 catkin_install_python(PROGRAMS
   nodes/camera_node.py
   nodes/tracking_node.py
+  nodes/img_pub_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
