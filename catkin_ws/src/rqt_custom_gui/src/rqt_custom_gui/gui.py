@@ -119,6 +119,7 @@ class MyWidget(QWidget):
                 cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
                 print("Nice")
                 tracker_widget_1 = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg')
+                
                 self.TrackerType = None
 
 
@@ -126,7 +127,8 @@ class TrackerPlace(QWidget):
         def __init__(self, trackerType,imName):
             super(TrackerPlace, self).__init__()
 
-            self.TrackerType = trackerType
+            
+            self.clickCount = 1 if trackerType in {0,2} else 2
             self.load_ui()
             
             self.img = QImage(imName)
@@ -134,6 +136,7 @@ class TrackerPlace(QWidget):
             img_label = self.ui.mainLabel
             img_label.setPixmap(pixmap)
             img_label.mousePressEvent = self.getPos
+            self.clicks = []
 
             self.show()
     
@@ -145,6 +148,8 @@ class TrackerPlace(QWidget):
             x = event.pos().x()
             y = event.pos().y()
             print(x,y)
-            #return x,y
+            self.clicks.append([x,y])
+            
+
 
     
