@@ -7,6 +7,7 @@ from python_qt_binding import loadUi
 #from python_qt_binding.QtWidgets import QWidget
 from rqt_gui_py.plugin import Plugin
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtGui import QPixmap, QImage
 from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
@@ -100,10 +101,10 @@ class MyWidget(QWidget):
             self.TrackerType = 1
         
         def TrackPointClick(self):
-            pass
+            self.TrackerType = 2
         
         def TrackLineClick(self):
-            pass
+            self.TrackerType = 3
 
         def GoButtonClick(self):
             pass
@@ -112,7 +113,38 @@ class MyWidget(QWidget):
             pass
 
         def initTrackers(self):
-            msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-            cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
+            if self.TrackerType is not None:
+                msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+                cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+                cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
+                print("Nice")
+                tracker_widget_1 = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg')
+                self.TrackerType = None
 
+
+class TrackerPlace(QWidget):
+        def __init__(self, trackerType,imName):
+            super(TrackerPlace, self).__init__()
+
+            self.TrackerType = trackerType
+            self.load_ui()
+            
+            self.img = QImage(imName)
+            pixmap = QPixmap(QPixmap.fromImage(self.img))
+            img_label = self.ui.mainLabel
+            img_label.setPixmap(pixmap)
+            img_label.mousePressEvent = self.getPos
+
+            self.show()
+    
+        def load_ui(self):
+            ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'trackerPlace.ui')
+            self.ui = loadUi(ui_file, self)
+
+        def getPos(self , event):
+            x = event.pos().x()
+            y = event.pos().y()
+            print(x,y)
+            #return x,y
+
+    

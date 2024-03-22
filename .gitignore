@@ -2,3 +2,4 @@ catkin_ws/build
 catkin_ws/devel
 .vscode
 .catkin_workspace
+catkin_ws/src/rqt_custom_gui/resource/im1.jpg
