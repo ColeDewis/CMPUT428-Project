@@ -6,7 +6,6 @@ import rospkg
 from python_qt_binding import loadUi
 #from python_qt_binding.QtWidgets import QWidget
 from rqt_gui_py.plugin import Plugin
-from rqt_image_view import ImageView
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
 
 class CustomGUI(Plugin):
@@ -59,7 +58,15 @@ class MyWidget(QWidget):
         def __init__(self):
             super(MyWidget, self).__init__()
             self.load_ui()
-            self.ui.FPButton.clicked.connect(self.testClicked)
+
+            self.ui.PtoPButton.clicked.connect(self.PtoPClick)
+            self.ui.PtoLButton.clicked.connect(self.PtoLClick)
+            self.ui.LtoLButton.clicked.connect(self.LtoLClick)
+
+            self.ui.FPButton.clicked.connect(self.FixedPointClick)
+            self.ui.FLButton.clicked.connect(self.FixedLineClick)
+            self.ui.TPButton.clicked.connect(self.TrackPointClick)
+            self.ui.TLButton.clicked.connect(self.TrackLineClick)
     
         def load_ui(self):
             ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
@@ -67,6 +74,29 @@ class MyWidget(QWidget):
 
     
             
+        def PtoPClick(self):
+            pass
+        
+        def PtoLClick(self):
+            pass
+
+        def LtoLClick(self):
+            pass
             
-        def testClicked(self):
+        def FixedPointClick(self):
             print("Nice")
+
+        def FixedLineClick(self):
+            pass
+        
+        def TrackPointClick(self):
+            pass
+        
+        def TrackLineClick(self):
+            pass
+
+        def GoButtonClick(self):
+            pass
+
+        def ResetButtonClick(self):
+            pass
