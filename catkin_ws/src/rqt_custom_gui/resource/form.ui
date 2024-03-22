@@ -161,7 +161,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="CamLabel1">
+     <widget class="TopicWidget" name="CamLabel1">
       <property name="autoFillBackground">
        <bool>false</bool>
       </property>
@@ -186,6 +186,13 @@
    </property>
   </widget>
  </widget>
+  <customwidgets>
+  <customwidget>
+    <class>TopicWidget</class>
+    <extends>QWidget</extends>
+    <header>rqt_image_view.ImageView</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
