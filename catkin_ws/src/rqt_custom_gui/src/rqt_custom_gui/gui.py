@@ -6,6 +6,7 @@ import rospkg
 from python_qt_binding import loadUi
 #from python_qt_binding.QtWidgets import QWidget
 from rqt_gui_py.plugin import Plugin
+from rqt_image_view import ImageView
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
 
 class CustomGUI(Plugin):
