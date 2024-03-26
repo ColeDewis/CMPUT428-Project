@@ -79,10 +79,12 @@ class MyWidget(QWidget):
         self.ui.FLButton.clicked.connect(self.FixedLineClick)
         self.ui.TPButton.clicked.connect(self.TrackPointClick)
         self.ui.TLButton.clicked.connect(self.TrackLineClick)
-        self.ui.TrackerGoButton.clicked.connect(self.initTrackers)
         self.ui.ResetButton.clicked.connect(self.ResetButtonClick)
         self.ui.InitButton.clicked.connect(self.InitButtonClick)
         self.ui.GoButton.clicked.connect(self.GoButtonClick)
+
+        self.buttons = [self.ui.PtoPButton,self.ui.PtoLButton,self.ui.LtoLButton,self.ui.FPButton,self.ui.FLButton,
+                        self.ui.TPButton,self.ui.TLButton,self.ui.ResetButton,self.ui.InitButton,self.ui.GoButton]
 
         self.bridge = CvBridge()
         self.error_req1 = ErrorDefinition()
@@ -90,7 +92,6 @@ class MyWidget(QWidget):
         self.trackers_placed = 0
 
         self.trackersDisable(True)
-        self.trackerGoDisable(True)
         self.initDisable(True)
         self.goDisable(True)
 
@@ -105,20 +106,15 @@ class MyWidget(QWidget):
         self.ui.TPButton.setDisabled(i)
         self.ui.TLButton.setDisabled(i)
 
-    def trackerGoDisable(self, i):
-        self.ui.TrackerGoButton.setDisabled(i)
-
     def initDisable(self,i):
         self.ui.InitButton.setDisabled(i)
 
     def goDisable(self, i):
         self.ui.GoButton.setDisabled(i)
 
-
     def load_ui(self):
         ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
         self.ui = loadUi(ui_file, self)
-
 
     def PtoPClick(self):
         self.error_req1.type = "ptpt"
@@ -127,9 +123,11 @@ class MyWidget(QWidget):
         self.error_req2.cam_idx = self.camIndices[1]
         self.error_req1.components = []
         self.error_req2.components = []
+        self.ui.FPButton.setDisabled(False)
+        self.ui.TPButton.setDisabled(False)
+        self.ui.PtoPButton.setStyleSheet("background-color : green")
         self.tasksDisable(True)
-        #self.ui.PtoPButton.setStyleSheet("background-color : green")
-        self.trackersDisable(False)
+
     
     def PtoLClick(self):
         self.error_req1.type = "ptln"
@@ -139,6 +137,7 @@ class MyWidget(QWidget):
         self.error_req1.components = []
         self.error_req2.components = []
         self.tasksDisable(True)
+        self.ui.PtoLButton.setStyleSheet("background-color : green")
         self.trackersDisable(False)
 
     def LtoLClick(self):
@@ -148,32 +147,54 @@ class MyWidget(QWidget):
         self.error_req2.cam_idx = self.camIndices[1]
         self.error_req1.components = []
         self.error_req2.components = []
+        self.ui.FLButton.setDisabled(False)
+        self.ui.TLButton.setDisabled(False)
+        self.ui.LtoLButton.setStyleSheet("background-color : green")
         self.tasksDisable(True)
-        self.trackersDisable(False)
         
     def FixedPointClick(self):
         """Fixed point button click listener; sets selected tracker type to fixed point."""
         self.TrackerType = 0
+        self.ui.FPButton.setStyleSheet("background-color : green")
         rospy.loginfo("Tracker Type Selected: Fixed point")
-        self.trackerGoDisable(False)
+        self.ui.FLButton.setDisabled(True)
+        self.ui.FPButton.setDisabled(True)
+        if self.error_req1.type == "ptln":
+            self.ui.TPButton.setDisabled(True)
+        self.initTrackers()
 
     def FixedLineClick(self):
         """Fixed line button click listener; sets selected tracker type to fixed line."""
         self.TrackerType = 1
+        self.ui.FLButton.setStyleSheet("background-color : green")
         rospy.loginfo("Tracker Type Selected: Fixed line")
-        self.trackerGoDisable(False)
+        self.ui.FLButton.setDisabled(True)
+        self.ui.FPButton.setDisabled(True)
+        if self.error_req1.type == "ptln":
+            self.ui.TLButton.setDisabled(True)
+        self.initTrackers()
     
     def TrackPointClick(self):
         """Track point button click listener; sets selected tracker type to track-point."""
         self.TrackerType = 2
+        self.ui.TPButton.setStyleSheet("background-color : green")
         rospy.loginfo("Tracker Type Selected: Tracked point")
-        self.trackerGoDisable(False)
+        self.ui.TLButton.setDisabled(True)
+        self.ui.TPButton.setDisabled(True)
+        if self.error_req1.type == "ptln":
+            self.ui.FPButton.setDisabled(True)
+        self.initTrackers()
     
     def TrackLineClick(self):
         """Track Line button click listener; sets selected tracker type to track-line."""
         self.TrackerType = 3
+        self.ui.TLButton.setStyleSheet("background-color : green")
         rospy.loginfo("Tracker Type Selected: Tracked line")
-        self.trackerGoDisable(False)
+        self.ui.TLButton.setDisabled(True)
+        self.ui.TPButton.setDisabled(True)
+        if self.error_req1.type == "ptln":
+            self.ui.FLButton.setDisabled(True)
+        self.initTrackers()
 
     def InitButtonClick(self):
         """GO Button click listener. """
@@ -183,18 +204,26 @@ class MyWidget(QWidget):
         rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req1)
         rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req2)
         self.goDisable(False)
+        self.ui.InitButton.setStyleSheet("background-color : green")
+        self.initDisable(True)
+        self.ResetButtonClick()
+        self.goDisable(False)
 
     def ResetButtonClick(self):
         """Reset any progress."""
         #TODO Fill the rest of this out 
         self.tasksDisable(False)
         self.trackersDisable(True)
-        self.trackerGoDisable(True)
         self.initDisable(True)
         self.goDisable(True)
-        rospy.loginfo(self.error_req.components)
+        rospy.loginfo(self.error_req1.components)
+        rospy.loginfo(self.error_req2.components)
         self.error_req1 = ErrorDefinition()
-        self.error_req2 = ErrorDefinition
+        self.error_req2 = ErrorDefinition()
+        self.trackers_placed = 0
+        self.TrackerType = None
+        for i in self.buttons:
+            i.setStyleSheet("background-color : none")
 
     def GoButtonClick(Self):
         """I'm not 100% sure how you want to start the visual servoing but do it here"""
@@ -221,7 +250,6 @@ class MyWidget(QWidget):
             tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req2)
             
             self.TrackerType = None
-            self.trackerGoDisable(True)
             
             if self.trackers_placed == 2:
                 self.initDisable(False)
