@@ -121,7 +121,8 @@ class MyWidget(QWidget):
 
 
     def PtoPClick(self):
-        self.error_req.type = "ptpt"
+        self.error_req1.type = "ptpt"
+        self.error_req2.type = "ptpt"
         self.error_req1.cam_idx = self.camIndices[0]
         self.error_req2.cam_idx = self.camIndices[1]
         self.error_req1.components = []
@@ -131,7 +132,8 @@ class MyWidget(QWidget):
         self.trackersDisable(False)
     
     def PtoLClick(self):
-        self.error_req.type = "ptln"
+        self.error_req1.type = "ptln"
+        self.error_req2.type = "ptln"
         self.error_req1.cam_idx = self.camIndices[0]
         self.error_req2.cam_idx = self.camIndices[1]
         self.error_req1.components = []
@@ -140,7 +142,8 @@ class MyWidget(QWidget):
         self.trackersDisable(False)
 
     def LtoLClick(self):
-        self.error_req.type = "lnln"
+        self.error_req1.type = "lnln"
+        self.error_req2.type = "lnln"
         self.error_req1.cam_idx = self.camIndices[0]
         self.error_req2.cam_idx = self.camIndices[1]
         self.error_req1.components = []
@@ -177,7 +180,8 @@ class MyWidget(QWidget):
         # rospy.loginfo("Sending Visual Servo Start!")
         # rospy.Publisher("/vs_start", Empty).publish(Empty())
         rospy.loginfo("Sending error info stuff")
-        rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req)
+        rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req1)
+        rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req2)
         self.goDisable(False)
 
     def ResetButtonClick(self):
@@ -201,7 +205,7 @@ class MyWidget(QWidget):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
             self.trackers_placed += 1
-            #msg = rospy.wait_for_message("/cameras/cam2", Image) # subscribe to the whatsapp topic and get the message
+
             #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
             #msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 

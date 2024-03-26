@@ -25,3 +25,10 @@ except for the tracker ones which specify tracker type (required to open window)
 TrackerPlace is the window that opens up, all it does so far is print out the location of the last click. Will need
 to change that so it can save the location of multiple clicks. 
 
+
+For it to work with cameras and not img_pub_nodes: 
+    - Uncomment lines 205, 206
+    - Comment lines 208, 209
+    - Go to line 72 and make the numebers in the list be the correct cam indices
+
+
