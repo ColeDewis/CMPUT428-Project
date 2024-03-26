@@ -34,6 +34,7 @@ class ImgPubNode:
     def update_callback(self, event=None):
         """Callback to update the image on the camera topic."""
         self.image_pub.publish(self.image)
+        
 
 def main(args):
     rospy.loginfo("Starting a ImgPubNode ...")

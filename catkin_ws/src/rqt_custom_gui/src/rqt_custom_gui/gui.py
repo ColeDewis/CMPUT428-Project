@@ -7,6 +7,11 @@ from python_qt_binding import loadUi
 #from python_qt_binding.QtWidgets import QWidget
 from rqt_gui_py.plugin import Plugin
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtGui import QPixmap, QImage
+from sensor_msgs.msg import Image
+# ROS Image message -> OpenCV2 image converter
+from cv_bridge import CvBridge, CvBridgeError
+import cv2
 
 class CustomGUI(Plugin):
 
@@ -57,8 +62,22 @@ class CustomGUI(Plugin):
 class MyWidget(QWidget):
         def __init__(self):
             super(MyWidget, self).__init__()
+
+            self.TrackerType = None # 0 1 2 3 fp fl tp tl
             self.load_ui()
-            self.ui.FPButton.clicked.connect(self.testClicked)
+            #self.subscriber = 
+
+            self.ui.PtoPButton.clicked.connect(self.PtoPClick)
+            self.ui.PtoLButton.clicked.connect(self.PtoLClick)
+            self.ui.LtoLButton.clicked.connect(self.LtoLClick)
+
+            self.ui.FPButton.clicked.connect(self.FixedPointClick)
+            self.ui.FLButton.clicked.connect(self.FixedLineClick)
+            self.ui.TPButton.clicked.connect(self.TrackPointClick)
+            self.ui.TLButton.clicked.connect(self.TrackLineClick)
+            self.ui.TrackerGoButton.clicked.connect(self.initTrackers)
+
+            self.bridge = CvBridge()
     
         def load_ui(self):
             ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
@@ -66,6 +85,71 @@ class MyWidget(QWidget):
 
     
             
+        def PtoPClick(self):
+            pass
+        
+        def PtoLClick(self):
+            pass
+
+        def LtoLClick(self):
+            pass
             
-        def testClicked(self):
-            print("Nice")
+        def FixedPointClick(self):
+            self.TrackerType = 0
+
+        def FixedLineClick(self):
+            self.TrackerType = 1
+        
+        def TrackPointClick(self):
+            self.TrackerType = 2
+        
+        def TrackLineClick(self):
+            self.TrackerType = 3
+
+        def GoButtonClick(self):
+            pass
+
+        def ResetButtonClick(self):
+            pass
+
+        def initTrackers(self):
+            if self.TrackerType is not None:
+                msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+                cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+                cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
+                print("Nice")
+                tracker_widget_1 = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg')
+                
+                self.TrackerType = None
+
+
+class TrackerPlace(QWidget):
+        def __init__(self, trackerType,imName):
+            super(TrackerPlace, self).__init__()
+
+            
+            self.clickCount = 1 if trackerType in {0,2} else 2
+            self.load_ui()
+            
+            self.img = QImage(imName)
+            pixmap = QPixmap(QPixmap.fromImage(self.img))
+            img_label = self.ui.mainLabel
+            img_label.setPixmap(pixmap)
+            img_label.mousePressEvent = self.getPos
+            self.clicks = []
+
+            self.show()
+    
+        def load_ui(self):
+            ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'trackerPlace.ui')
+            self.ui = loadUi(ui_file, self)
+
+        def getPos(self , event):
+            x = event.pos().x()
+            y = event.pos().y()
+            print(x,y)
+            self.clicks.append([x,y])
+            
+
+
+    

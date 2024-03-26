@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>917</width>
-    <height>429</height>
+    <height>515</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <widget class="QLabel" name="TrackerLabel">
    <property name="geometry">
     <rect>
-     <x>440</x>
+     <x>430</x>
      <y>10</y>
      <width>63</width>
      <height>20</height>
@@ -29,7 +29,7 @@
   <widget class="QPushButton" name="FPButton">
    <property name="geometry">
     <rect>
-     <x>380</x>
+     <x>330</x>
      <y>40</y>
      <width>83</width>
      <height>29</height>
@@ -42,7 +42,7 @@
   <widget class="QPushButton" name="FLButton">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>420</x>
      <y>40</y>
      <width>83</width>
      <height>29</height>
@@ -55,7 +55,7 @@
   <widget class="QPushButton" name="TPButton">
    <property name="geometry">
     <rect>
-     <x>380</x>
+     <x>330</x>
      <y>80</y>
      <width>83</width>
      <height>29</height>
@@ -68,7 +68,7 @@
   <widget class="QPushButton" name="TLButton">
    <property name="geometry">
     <rect>
-     <x>470</x>
+     <x>420</x>
      <y>80</y>
      <width>83</width>
      <height>29</height>
@@ -143,35 +143,6 @@
     <string>GO!</string>
    </property>
   </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>120</y>
-     <width>861</width>
-     <height>291</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout">
-    <item>
-     <widget class="QLabel" name="CamLabel2">
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="TopicWidget" name="CamLabel1">
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>TextLabel</string>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
   <widget class="QPushButton" name="ResetButton">
    <property name="geometry">
     <rect>
@@ -185,14 +156,22 @@
     <string>Reset</string>
    </property>
   </widget>
+  <widget class="QPushButton" name="TrackerGoButton">
+   <property name="geometry">
+    <rect>
+     <x>510</x>
+     <y>40</y>
+     <width>71</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Place 
+ Selected 
+ Tracker</string>
+   </property>
+  </widget>
  </widget>
-  <customwidgets>
-  <customwidget>
-    <class>TopicWidget</class>
-    <extends>QWidget</extends>
-    <header>rqt_image_view.ImageView</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>
