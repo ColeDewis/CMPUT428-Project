@@ -69,6 +69,8 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
+        self.camIndices = [0,1]
+
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
         self.ui.PtoLButton.clicked.connect(self.PtoLClick)
         self.ui.LtoLButton.clicked.connect(self.LtoLClick)
@@ -83,7 +85,8 @@ class MyWidget(QWidget):
         self.ui.GoButton.clicked.connect(self.GoButtonClick)
 
         self.bridge = CvBridge()
-        self.error_req = ErrorDefinition()
+        self.error_req1 = ErrorDefinition()
+        self.error_req2 = ErrorDefinition()
         self.trackers_placed = 0
 
         self.trackersDisable(True)
@@ -119,23 +122,29 @@ class MyWidget(QWidget):
 
     def PtoPClick(self):
         self.error_req.type = "ptpt"
-        self.error_req.cam_idx = 2
-        self.error_req.components = []
+        self.error_req1.cam_idx = self.camIndices[0]
+        self.error_req2.cam_idx = self.camIndices[1]
+        self.error_req1.components = []
+        self.error_req2.components = []
         self.tasksDisable(True)
         #self.ui.PtoPButton.setStyleSheet("background-color : green")
         self.trackersDisable(False)
     
     def PtoLClick(self):
         self.error_req.type = "ptln"
-        self.error_req.cam_idx = 2
-        self.error_req.components = []
+        self.error_req1.cam_idx = self.camIndices[0]
+        self.error_req2.cam_idx = self.camIndices[1]
+        self.error_req1.components = []
+        self.error_req2.components = []
         self.tasksDisable(True)
         self.trackersDisable(False)
 
     def LtoLClick(self):
         self.error_req.type = "lnln"
-        self.error_req.cam_idx = 2
-        self.error_req.components = []
+        self.error_req1.cam_idx = self.camIndices[0]
+        self.error_req2.cam_idx = self.camIndices[1]
+        self.error_req1.components = []
+        self.error_req2.components = []
         self.tasksDisable(True)
         self.trackersDisable(False)
         
@@ -173,8 +182,15 @@ class MyWidget(QWidget):
 
     def ResetButtonClick(self):
         """Reset any progress."""
+        #TODO Fill the rest of this out 
+        self.tasksDisable(False)
+        self.trackersDisable(True)
+        self.trackerGoDisable(True)
+        self.initDisable(True)
+        self.goDisable(True)
         rospy.loginfo(self.error_req.components)
-        self.error_req = ErrorDefinition()
+        self.error_req1 = ErrorDefinition()
+        self.error_req2 = ErrorDefinition
 
     def GoButtonClick(Self):
         """I'm not 100% sure how you want to start the visual servoing but do it here"""
@@ -186,11 +202,19 @@ class MyWidget(QWidget):
         if self.TrackerType is not None:
             self.trackers_placed += 1
             #msg = rospy.wait_for_message("/cameras/cam2", Image) # subscribe to the whatsapp topic and get the message
-            msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+            #msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-            cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            msg2 = rospy.wait_for_message("img_pub_node", Image) 
+
+            cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
-            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req)
+            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req1)
+            
+            cv2_img = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
+            cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
+            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req2)
             
             self.TrackerType = None
             self.trackerGoDisable(True)
