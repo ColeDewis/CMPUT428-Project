@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(camera_node)
+project(custom_msgs)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -20,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
-## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
+## See http://ros.org/doc/api/catkin/html/user_guide/catkin_ws/src/camera_nodesetup_dot_py.html
 # catkin_python_setup()
 
 ################################################
@@ -48,9 +49,12 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-# )
+add_message_files(
+  FILES
+  ErrorDefinition.msg
+  Point2D.msg
+  TrackRequest.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -67,10 +71,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES mock_vs_camera
-#  CATKIN_DEPENDS message_runtime roscpp rospy sensor_msgs std_msgs
+ CATKIN_DEPENDS message_runtime roscpp rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -184,8 +188,6 @@ catkin_package(
 #   PATTERN ".svn" EXCLUDE
 # )
 
-install(DIRECTORY img/
-DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
@@ -193,13 +195,6 @@ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-
-catkin_install_python(PROGRAMS
-  nodes/camera_node.py
-  nodes/tracking_node.py
-  nodes/img_pub_node.py
-  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
 
 
 #############

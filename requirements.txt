@@ -4,3 +4,4 @@ numpy-ros
 libtmux
 opencv-python
 conan==1.59
+sympy
