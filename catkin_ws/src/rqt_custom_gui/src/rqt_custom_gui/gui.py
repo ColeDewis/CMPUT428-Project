@@ -84,11 +84,12 @@ class MyWidget(QWidget):
 
         self.bridge = CvBridge()
         self.error_req = ErrorDefinition()
+        self.trackers_placed = 0
 
         self.trackersDisable(True)
         self.trackerGoDisable(True)
         self.initDisable(True)
-        self.doneDisable(True)
+        self.goDisable(True)
 
     def tasksDisable(self, i):
         self.ui.PtoPButton.setDisabled(i)
@@ -107,7 +108,7 @@ class MyWidget(QWidget):
     def initDisable(self,i):
         self.ui.InitButton.setDisabled(i)
 
-    def doneDisable(self, i):
+    def goDisable(self, i):
         self.ui.GoButton.setDisabled(i)
 
 
@@ -121,6 +122,7 @@ class MyWidget(QWidget):
         self.error_req.cam_idx = 2
         self.error_req.components = []
         self.tasksDisable(True)
+        #self.ui.PtoPButton.setStyleSheet("background-color : green")
         self.trackersDisable(False)
     
     def PtoLClick(self):
@@ -167,6 +169,7 @@ class MyWidget(QWidget):
         # rospy.Publisher("/vs_start", Empty).publish(Empty())
         rospy.loginfo("Sending error info stuff")
         rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req)
+        self.goDisable(False)
 
     def ResetButtonClick(self):
         """Reset any progress."""
@@ -174,21 +177,26 @@ class MyWidget(QWidget):
         self.error_req = ErrorDefinition()
 
     def GoButtonClick(Self):
+        """I'm not 100% sure how you want to start the visual servoing but do it here"""
+        # TODO Cole help me Cole
         pass
 
     def initTrackers(self):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
+            self.trackers_placed += 1
             #msg = rospy.wait_for_message("/cameras/cam2", Image) # subscribe to the whatsapp topic and get the message
             msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
 
             cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
-            print("????")
             tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req)
             
             self.TrackerType = None
-            self.trackerGoDisable(False)
+            self.trackerGoDisable(True)
+            
+            if self.trackers_placed == 2:
+                self.initDisable(False)
 
 class TrackerPlace(QWidget):
     def __init__(self, trackerType, imName, error_req):
@@ -207,7 +215,6 @@ class TrackerPlace(QWidget):
             self.track_req.type = "tl"
         else:
             raise TypeError("invalid tracker type")
-        print(3)
         
         self.load_ui()
         self.img = QImage(imName)
