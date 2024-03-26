@@ -16,11 +16,12 @@ class ErrorInfo:
     LINETOLINE = "lnln"
     POINTTOPOINT = "ptpt"
     POINTTOLINE = "ptln"
-    def __init__(self, err_type, formula, idxs, err_idx):
+    def __init__(self, err_type, formula, idxs, err_idx, fixed_idxs):
         self.err_type = err_type
         self.formula = formula
         self.idxs = idxs
         self.err_idx = err_idx
+        self.fixed_idxs = fixed_idxs
         
         # random color
         self.b = randint(0, 255)
@@ -107,20 +108,9 @@ class TrackingNode:
         
     def init_trackers(self, idx, starting_pts):
         """Initialize trackers for each camera."""
-        # TODO: in the future, we probably will instead have another node (or something) to call a "task initialization" 
-        
-        # TODO: we will receive a TrackRequest which tells us points to track and whether its a line or a point - we can then use this to map to indexes
-        # TODO: receive an ErrorDefinition which tells us ids associated with a certain definition
         rospy.loginfo("Tracker Init - waiting for msg")
         starting_frame = rospy.wait_for_message(f"/cameras/cam{idx}", Image)
         starting_frame = self.bridge.imgmsg_to_cv2(img_msg=starting_frame, desired_encoding="rgb8")
-        
-        # init 1 tracked point
-        # plt.imshow(starting_frame)
-        # pt = plt.ginput(2)
-        # plt.close()
-        # starting_pts = [pt[0]]
-        # self.target[idx] = np.array([pt[1][0], pt[1][1]])
         
         p0 = []
         for point in starting_pts: p0.append(list(point))
@@ -161,8 +151,14 @@ class TrackingNode:
             x1, y1, x2, y2 = sy.symbols("x1 y1 x2 y2")
             xy1 = sy.Matrix([x1, y1, 1])
             xy2 = sy.Matrix([x2, y2, 1])
-            error = xy1.cross(xy2)
+            error = xy1.cross(xy2)[:2, :]
             indexes, err_idx = self.init_trackers(cam_idx, [p1, p2])
+            
+            # assume one of 2 points is fixed for simplicity for now.
+            if components[0].type == "fp":
+                fixed_idxs = [indexes[0]]
+            else:
+                fixed_idxs = [indexes[1]]
             
         elif err_type == "ptln":
             # we don't know what is what so check
@@ -184,6 +180,12 @@ class TrackingNode:
             error = xy1.dot(xy2.cross(xy3))
             indexes, err_idx = self.init_trackers(cam_idx, [pt, lp1, lp2])
             
+            # assume either point or line is fixed for simplicity for now
+            if components[0].type == "fp" or components[1].type == "fp":
+                fixed_idxs = [indexes[0]]
+            else:
+                fixed_idxs = [indexes[1], indexes[2]]
+            
         elif err_type == "lnln":
             # assume we have 2 lines
             p1 = [components[0].points[0].x, components[0].points[0].y]
@@ -198,8 +200,14 @@ class TrackingNode:
             l2 = xy3.cross(xy4)
             error = xy1.dot(l2) + xy2.dot(l2)
             indexes, err_idx = self.init_trackers(cam_idx, [p1, p2, p3, p4])
+            
+            # assume one line is fixed for simplicity for now
+            if components[0].type == "fl":
+                fixed_idxs = [indexes[0], indexes[1]]
+            else:
+                fixed_idxs = [indexes[2], indexes[3]]
         
-        self.error_formulas[cam_idx].append(ErrorInfo(err_type, error, indexes, err_idx))
+        self.error_formulas[cam_idx].append(ErrorInfo(err_type, error, indexes, err_idx, fixed_idxs))
         rospy.loginfo(f"INDEXES: {indexes}")
         
     def update_trackers(self, data: Image):
@@ -219,13 +227,16 @@ class TrackingNode:
         lk_params = dict(winSize = (32, 32), maxLevel = 8, criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 9, 0.02555))
         p1, _, _ = cv2.calcOpticalFlowPyrLK(self.last_frame[camera_idx], gray_img, self.last_points[camera_idx], None, **lk_params)
         self.last_frame[camera_idx] = gray_img.copy()
-        self.last_points[camera_idx] = p1.copy()
         
         marked_up_image = np.copy(frame)
         
-        # self.error[camera_idx] = []
         formula: ErrorInfo
         for formula in self.error_formulas[camera_idx]:
+            # for all fixed indexes set them back to old value 
+            for idx in formula.fixed_idxs:
+                p1[idx] = self.last_points[camera_idx][idx]
+            
+            # setup args for sympy evaluation
             args = {}
             for i, idx in enumerate(formula.idxs):
                 args["x"+str(i+1)] = p1[idx][0]
@@ -242,14 +253,11 @@ class TrackingNode:
                 
             rospy.loginfo(f"{err}")
             self.error[camera_idx][formula.err_idx] = err
-            # for e in err:
-            #     self.error[camera_idx].append(e)
                 
+        self.last_points[camera_idx] = p1.copy()
         img_msg: Image = self.bridge.cv2_to_imgmsg(cvim=marked_up_image, encoding="rgb8")
         self.tracking_publishers[camera_idx].publish(img_msg)        
         
-        # self.publish_tracking_and_error()
-                
     def publish_tracking_and_error(self, event=None):
         """Publish tracked points and error from ALL cameras combined."""
         
