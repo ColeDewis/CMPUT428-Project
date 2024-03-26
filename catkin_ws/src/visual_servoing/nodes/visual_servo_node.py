@@ -88,6 +88,7 @@ class VisualServoing:
         Args:
             data (TrackedPoints): last eef pose
         """
+        if len(data.points) == 0: return
         self.latest_eef = np.array([data.points[0].x, data.points[0].y])
         
     def img_error_callback(self, data: Error):
@@ -96,6 +97,7 @@ class VisualServoing:
         Args:
             data (Error): last error
         """
+        if len(data.error) == 0: return
         self.latest_error = np.asarray([data.error])
         
     def start_callback(self, data: Empty):
@@ -154,7 +156,7 @@ class VisualServoing:
     def update_jacobian(self):
         """Generate an initial jacobian, or update to reset it by doing basis movements."""
         self.jacobian = np.zeros((self.latest_error.size, self.num_joints))
-        delta = 0.1
+        delta = 0.05
         
         # loop for each joint
         move = [0.0, 0.0, 0.0, 0.0]
@@ -219,7 +221,7 @@ class VisualServoing:
 def main(args):
     rospy.sleep(3) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
     rospy.loginfo("Starting vs node...")
-    node = VisualServoing(learn_rate=0.05, step_size=0.1, max_it=100, threshold=3, num_joints=4)
+    node = VisualServoing(learn_rate=0.2, step_size=0.1, max_it=100, threshold=5, num_joints=4)
     
     try:
         rospy.spin()
