@@ -91,17 +91,17 @@ class MyWidget(QWidget):
 
     def PtoPClick(self):
         self.error_req.type = "ptpt"
-        self.error_req.cam_idx = 0
+        self.error_req.cam_idx = 2
         self.error_req.components = []
     
     def PtoLClick(self):
         self.error_req.type = "ptln"
-        self.error_req.cam_idx = 0
+        self.error_req.cam_idx = 2
         self.error_req.components = []
 
     def LtoLClick(self):
         self.error_req.type = "lnln"
-        self.error_req.cam_idx = 0
+        self.error_req.cam_idx = 2
         self.error_req.components = []
         
     def FixedPointClick(self):
@@ -125,7 +125,7 @@ class MyWidget(QWidget):
         rospy.loginfo("Tracker Type Selected: Tracked line")
 
     def GoButtonClick(self):
-        """GO Button click listener. Sends the start command for visual servoing."""
+        """GO Button click listener. """
         # rospy.loginfo("Sending Visual Servo Start!")
         # rospy.Publisher("/vs_start", Empty).publish(Empty())
         rospy.loginfo("Sending error info stuff")
@@ -139,7 +139,7 @@ class MyWidget(QWidget):
     def initTrackers(self):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
-            msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            msg = rospy.wait_for_message("/cameras/cam2", Image) # subscribe to the whatsapp topic and get the message
             cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
             print("Nice")
@@ -173,6 +173,7 @@ class TrackerPlace(QWidget):
         img_label.setPixmap(pixmap)
         img_label.mousePressEvent = self.getPos
         self.clicks = []
+        self.resize(self.img.size())
         self.show()
 
     def load_ui(self):
