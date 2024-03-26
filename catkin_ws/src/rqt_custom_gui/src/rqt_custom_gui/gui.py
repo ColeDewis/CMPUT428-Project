@@ -15,6 +15,7 @@ from std_msgs.msg import Empty
 from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D
 import cv2
 
+
 class CustomGUI(Plugin):
 
     def __init__(self, context):
@@ -67,7 +68,6 @@ class MyWidget(QWidget):
 
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
-        #self.subscriber = 
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
         self.ui.PtoLButton.clicked.connect(self.PtoLClick)
@@ -79,10 +79,37 @@ class MyWidget(QWidget):
         self.ui.TLButton.clicked.connect(self.TrackLineClick)
         self.ui.TrackerGoButton.clicked.connect(self.initTrackers)
         self.ui.ResetButton.clicked.connect(self.ResetButtonClick)
+        self.ui.InitButton.clicked.connect(self.InitButtonClick)
         self.ui.GoButton.clicked.connect(self.GoButtonClick)
 
         self.bridge = CvBridge()
         self.error_req = ErrorDefinition()
+
+        self.trackersDisable(True)
+        self.trackerGoDisable(True)
+        self.initDisable(True)
+        self.doneDisable(True)
+
+    def tasksDisable(self, i):
+        self.ui.PtoPButton.setDisabled(i)
+        self.ui.PtoLButton.setDisabled(i)
+        self.ui.LtoLButton.setDisabled(i)
+
+    def trackersDisable(self, i):
+        self.ui.FPButton.setDisabled(i)
+        self.ui.FLButton.setDisabled(i)
+        self.ui.TPButton.setDisabled(i)
+        self.ui.TLButton.setDisabled(i)
+
+    def trackerGoDisable(self, i):
+        self.ui.TrackerGoButton.setDisabled(i)
+
+    def initDisable(self,i):
+        self.ui.InitButton.setDisabled(i)
+
+    def doneDisable(self, i):
+        self.ui.GoButton.setDisabled(i)
+
 
     def load_ui(self):
         ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
@@ -93,38 +120,48 @@ class MyWidget(QWidget):
         self.error_req.type = "ptpt"
         self.error_req.cam_idx = 2
         self.error_req.components = []
+        self.tasksDisable(True)
+        self.trackersDisable(False)
     
     def PtoLClick(self):
         self.error_req.type = "ptln"
         self.error_req.cam_idx = 2
         self.error_req.components = []
+        self.tasksDisable(True)
+        self.trackersDisable(False)
 
     def LtoLClick(self):
         self.error_req.type = "lnln"
         self.error_req.cam_idx = 2
         self.error_req.components = []
+        self.tasksDisable(True)
+        self.trackersDisable(False)
         
     def FixedPointClick(self):
         """Fixed point button click listener; sets selected tracker type to fixed point."""
         self.TrackerType = 0
         rospy.loginfo("Tracker Type Selected: Fixed point")
+        self.trackerGoDisable(False)
 
     def FixedLineClick(self):
         """Fixed line button click listener; sets selected tracker type to fixed line."""
         self.TrackerType = 1
         rospy.loginfo("Tracker Type Selected: Fixed line")
+        self.trackerGoDisable(False)
     
     def TrackPointClick(self):
         """Track point button click listener; sets selected tracker type to track-point."""
         self.TrackerType = 2
         rospy.loginfo("Tracker Type Selected: Tracked point")
+        self.trackerGoDisable(False)
     
     def TrackLineClick(self):
         """Track Line button click listener; sets selected tracker type to track-line."""
         self.TrackerType = 3
         rospy.loginfo("Tracker Type Selected: Tracked line")
+        self.trackerGoDisable(False)
 
-    def GoButtonClick(self):
+    def InitButtonClick(self):
         """GO Button click listener. """
         # rospy.loginfo("Sending Visual Servo Start!")
         # rospy.Publisher("/vs_start", Empty).publish(Empty())
@@ -136,21 +173,26 @@ class MyWidget(QWidget):
         rospy.loginfo(self.error_req.components)
         self.error_req = ErrorDefinition()
 
+    def GoButtonClick(Self):
+        pass
+
     def initTrackers(self):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
-            msg = rospy.wait_for_message("/cameras/cam2", Image) # subscribe to the whatsapp topic and get the message
+            #msg = rospy.wait_for_message("/cameras/cam2", Image) # subscribe to the whatsapp topic and get the message
+            msg = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+
             cv2_img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
-            print("Nice")
+            print("????")
             tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req)
             
             self.TrackerType = None
+            self.trackerGoDisable(False)
 
 class TrackerPlace(QWidget):
     def __init__(self, trackerType, imName, error_req):
         super(TrackerPlace, self).__init__()
-
         self.error_req = error_req
         self.track_req = TrackRequest()
         self.track_req.points = []
@@ -165,6 +207,7 @@ class TrackerPlace(QWidget):
             self.track_req.type = "tl"
         else:
             raise TypeError("invalid tracker type")
+        print(3)
         
         self.load_ui()
         self.img = QImage(imName)
