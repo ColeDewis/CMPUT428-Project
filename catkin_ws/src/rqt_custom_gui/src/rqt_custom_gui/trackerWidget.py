@@ -75,8 +75,6 @@ class TrackerPlace(QWidget):
         self.setImage()
 
         
-
-    
     def shutdown(self):
         """Shuts down the click window once we have enough clicks, and sends info to the tracking node."""
         for pt in self.clicks:

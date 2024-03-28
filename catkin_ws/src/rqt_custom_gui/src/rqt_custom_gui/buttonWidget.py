@@ -11,7 +11,7 @@ from PyQt5.QtGui import QPixmap, QImage
 from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, Int32
 from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D
 import cv2   
 from rqt_custom_gui.trackerWidget import TrackerPlace
@@ -25,7 +25,14 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        self.camIndices = [0,1]
+        #self.camIndices = [0,1]
+        cam_idx1 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
+        cam_idx2 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
+
+        self.camIndices = [cam_idx1.data, cam_idx2.data]
+        
+        rospy.loginfo("Cam Indices: ", self.camIndices)
+
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
         self.ui.PtoLButton.clicked.connect(self.PtoLClick)

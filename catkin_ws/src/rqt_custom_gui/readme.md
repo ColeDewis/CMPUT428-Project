@@ -27,8 +27,10 @@ to change that so it can save the location of multiple clicks.
 
 
 For it to work with cameras and not img_pub_nodes: 
+IN buttonWidget.py
     - Uncomment lines 205, 206
     - Comment lines 208, 209
     - Go to line 72 and make the numebers in the list be the correct cam indices
 
+Now it's grabbing camera indices on it's own. If you don't want it to do two camera, you'll have to mess around with lines 30-32 in buttonWidget.py :)
 
