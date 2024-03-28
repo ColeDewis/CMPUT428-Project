@@ -33,19 +33,24 @@ class TrackerPlace(QWidget):
         else:
             raise TypeError("invalid tracker type")
         
+        self.imName = imName
         self.load_ui()
-        self.img = QImage(imName)
-        pixmap = QPixmap(QPixmap.fromImage(self.img))
-        img_label = self.ui.mainLabel
-        img_label.setPixmap(pixmap)
-        img_label.mousePressEvent = self.getPos
+        self.img_label.mousePressEvent = self.getPos
         self.clicks = []
+
+
+    def setImage(self): 
+        self.img = QImage(self.imName)
+        pixmap = QPixmap(QPixmap.fromImage(self.img))
+        self.img_label.setPixmap(pixmap)
         self.resize(self.img.size())
         self.show()
 
     def load_ui(self):
         ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'trackerPlace.ui')
         self.ui = loadUi(ui_file, self)
+        self.img_label = self.ui.mainLabel
+        self.setImage()
 
     def getPos(self , event):
         """Called on a mouse press event for the image; adds the clicked point to a points list.
@@ -60,6 +65,17 @@ class TrackerPlace(QWidget):
         self.clickCount = self.clickCount - 1
         if self.clickCount == 0:
             self.shutdown()
+        else:
+            self.drawPoint(x,y)
+
+    def drawPoint(self, x, y):
+        im = cv2.imread(self.imName)
+        im = cv2.circle(im, (x,y), 3, (255,0,0), 5) 
+        cv2.imwrite(self.imName, im)
+        self.setImage()
+
+        
+
     
     def shutdown(self):
         """Shuts down the click window once we have enough clicks, and sends info to the tracking node."""

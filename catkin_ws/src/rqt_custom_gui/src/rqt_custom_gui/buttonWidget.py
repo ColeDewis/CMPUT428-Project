@@ -203,7 +203,7 @@ class MyWidget(QWidget):
             
             cv2_img = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
-            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req2)
+            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.error_req2)
             
             self.TrackerType = None
             
