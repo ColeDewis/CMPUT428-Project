@@ -5,6 +5,7 @@ import cv_bridge
 import numpy as np
 
 from sensor_msgs.msg import Image
+from std_msgs.msg import Int32
 from visual_servoing.msg import Error, TrackedPoint, TrackedPoints
 
 import matplotlib.pyplot as plt
@@ -17,11 +18,17 @@ class CameraNode:
         rospy.init_node("camera_node", anonymous=True)
         cam_param = rospy.search_param("cam_idx")
         self.cam_idx = rospy.get_param(cam_param, None)
-        
+                
         if self.cam_idx is None:
             rospy.logwarn("Must pass camera index as _cam_idx:=<cam_idx>")
             exit()
         
+        idx_pub = rospy.Publisher("cam_idx", Int32)
+        while not rospy.is_shutdown():
+            if idx_pub.get_num_connections() > 0:
+                idx_pub.publish(self.cam_idx)
+                idx_pub.unregister()
+                break
         # node_name = f"camera_node{self.cam_idx}"
     
         rospy.delete_param(cam_param) # delete param so its needed for future runs.
