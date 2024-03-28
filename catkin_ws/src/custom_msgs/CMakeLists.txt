@@ -54,6 +54,7 @@ add_message_files(
   ErrorDefinition.msg
   Point2D.msg
   TrackRequest.msg
+  DistanceDefinition.msg
 )
 
 ## Generate services in the 'srv' folder

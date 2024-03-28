@@ -201,6 +201,11 @@ class VisualServoing:
             max_it (int): max iterations
             step_size (float): step size for updates
         """
+        # TODO: Chen has suggested that we may need to add scales for each task to balance convergence. 
+        # This is a good idea, not sure how to implement yet though.
+        
+        
+        
         rospy.loginfo(f"Starting VS Converge with max iterations {max_it} and step_size {step_size}")
         self.update_jacobian()
         for i in range(max_it):
