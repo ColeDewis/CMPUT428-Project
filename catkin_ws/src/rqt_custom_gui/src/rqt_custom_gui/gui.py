@@ -69,7 +69,7 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        self.camIndices = [0,1]
+        self.camIndices = [2, 4]
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
         self.ui.PtoLButton.clicked.connect(self.PtoLClick)
@@ -197,9 +197,7 @@ class MyWidget(QWidget):
         self.initTrackers()
 
     def InitButtonClick(self):
-        """GO Button click listener. """
-        # rospy.loginfo("Sending Visual Servo Start!")
-        # rospy.Publisher("/vs_start", Empty).publish(Empty())
+        """Initialize Button click listener. Sends the errordefinitions to the tracking node."""
         rospy.loginfo("Sending error info stuff")
         rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req1)
         rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req2)
@@ -226,20 +224,20 @@ class MyWidget(QWidget):
             i.setStyleSheet("background-color : none")
 
     def GoButtonClick(Self):
-        """I'm not 100% sure how you want to start the visual servoing but do it here"""
-        # TODO Cole help me Cole
-        pass
+        """GO Button click listener, starts the visual servoing."""
+        rospy.loginfo("Sending Visual Servo Start!")
+        rospy.Publisher("/vs_start", Empty).publish(Empty())
 
     def initTrackers(self):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
             self.trackers_placed += 1
 
-            #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-            #msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+            msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+            msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-            msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-            msg2 = rospy.wait_for_message("img_pub_node", Image) 
+            # msg1 = rospy.wait_for_message("img_pub_node", Image) 
+            # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
             cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
@@ -247,7 +245,7 @@ class MyWidget(QWidget):
             
             cv2_img = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
-            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req2)
+            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.error_req2)
             
             self.TrackerType = None
             

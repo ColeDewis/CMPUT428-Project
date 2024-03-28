@@ -59,5 +59,22 @@ if __name__ == "__main__":
     # Seems to be fairly accurate (as much as clicking on image points can be really)
     print(f"Distance between your two points is: {distance}")
     
+    d_star = 2
+    D_star = (d_star * d_s2_s3) / ((D / cr1) * d_s3_v1)
+    
+    # for our purposes, it seems convenient to define a = 0, v = d_a_v
+    p = (d_a2_v1 * D_star) / (D_star + 1)
+    
+    # get the unit vector between the point "a" and point "v"
+    unit_vec = [(v1[0] - a2[0])/d_a2_v1, (v1[1] - a2[1])/d_a2_v1]
+    print("unit vec test: ", unit_vec, np.linalg.norm(unit_vec))
+    print("P:", p)
+    p_img = [a2[0] + unit_vec[0] * p, a2[1] + unit_vec[1] * p]
+    print("P_img", p_img)
+    
     plt.close()
+    img = cv2.line(img, (int(a2[0]), int(a2[1])), (int(v1[0]), int(v1[1])), color=(255, 0, 0), thickness=5)
+    img = cv2.circle(img, (int(p_img[0]), int(p_img[1])), 0, color=(0, 255, 0), thickness=10)
+    cv2.imshow("your point:", img)
+    cv2.waitKey()
     
