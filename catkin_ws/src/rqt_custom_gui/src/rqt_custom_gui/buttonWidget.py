@@ -12,9 +12,10 @@ from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty, Int32
-from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D
+from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D, DistanceDefinition
 import cv2   
 from rqt_custom_gui.trackerWidget import TrackerPlace
+from rqt_custom_gui.distanceWiget import DistancePlace
 
 
 
@@ -46,13 +47,20 @@ class MyWidget(QWidget):
         self.ui.InitButton.clicked.connect(self.InitButtonClick)
         self.ui.GoButton.clicked.connect(self.GoButtonClick)
 
+        self.ui.PlaceTrackers.clicked.connect(self.PlaceTrackersClick)
+        self.ui.DoneDis.clicked.connect(self.DistanceDone)
+        self.ui.ResetDis.clicked.connect(self.DistanceReset)
+
         self.buttons = [self.ui.PtoPButton,self.ui.PtoLButton,self.ui.LtoLButton,self.ui.FPButton,self.ui.FLButton,
-                        self.ui.TPButton,self.ui.TLButton,self.ui.ResetButton,self.ui.InitButton,self.ui.GoButton]
+                        self.ui.TPButton,self.ui.TLButton,self.ui.ResetButton,self.ui.InitButton,self.ui.GoButton,
+                        self.ui.PlaceTrackers, self.ui.DoneDis, self.ui.ResetDis]
 
         self.bridge = CvBridge()
         self.error_req1 = ErrorDefinition()
         self.error_req2 = ErrorDefinition()
         self.trackers_placed = 0
+        self.Distance1 = DistanceDefinition()
+        self.Distance2 = DistanceDefinition()
 
         self.trackersDisable(True)
         self.initDisable(True)
@@ -82,6 +90,60 @@ class MyWidget(QWidget):
     def load_ui(self):
         ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
         self.ui = loadUi(ui_file, self)
+
+    def PlaceTrackersClick(self):
+    
+        self.trackers_placed += 1
+
+        #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+        #msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+
+        msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+        msg2 = rospy.wait_for_message("img_pub_node", Image) 
+
+        cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
+        cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
+        tracker_place_widget = DistancePlace('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.Distance1)
+        
+        cv2_img = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
+        cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
+        DistancePlace('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.Distance2 )
+        
+        self.TrackerType = None
+        
+        if self.trackers_placed == 2:
+            self.initDisable(False)
+
+    def DistanceDone(self):
+        if self.ui.Dim1Val.text() and self.ui.Dim2Val.text() and self.ui.TaskDistance.text() and self.ui.TaskDirection.text():
+            '''int8 desired_distance
+            int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
+            float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
+            float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
+            u = float(self.ui.Dim1Val.text())
+            v = float(self.ui.Dim2Val.text())
+            dis = int(self.ui.TaskDistance.text())
+            direct = int(self.ui.TaskDirection.text())
+
+            self.Distance1.reference_distance_u = u
+            self.Distance1.reference_distance_v = v
+            self.Distance2.reference_distance_u = u
+            self.Distance2.reference_distance_v = v
+
+            self.Distance1.desired_distance = dis
+            self.Distance2.desired_distance = dis
+            self.Distance1.direction = direct
+            self.Distance2.direction = direct
+
+            self.error_req1.distance_info = self.Distance1
+            self.error_req2.distance_info = self.Distance2
+
+
+
+            
+    
+    def DistanceReset(self):
+        pass
 
     def PtoPClick(self):
         self.error_req1.type = "ptpt"
