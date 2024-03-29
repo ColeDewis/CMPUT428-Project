@@ -23,14 +23,6 @@ class CameraNode:
             rospy.logwarn("Must pass camera index as _cam_idx:=<cam_idx>")
             exit()
         
-        idx_pub = rospy.Publisher("cam_idx", Int32)
-        while not rospy.is_shutdown():
-            if idx_pub.get_num_connections() > 0:
-                idx_pub.publish(self.cam_idx)
-                idx_pub.unregister()
-                break
-        # node_name = f"camera_node{self.cam_idx}"
-    
         rospy.delete_param(cam_param) # delete param so its needed for future runs.
         rospy.loginfo(f"Initialized Camera on topic /cameras/cam{self.cam_idx}")
         
@@ -53,6 +45,8 @@ class CameraNode:
         
         self.image_error_pub = rospy.Publisher("/image_error", Error, queue_size=10)
         
+        self.idx_pub = rospy.Publisher("/cam_idx", Int32, queue_size=1)
+        
         # timer for image update
         rospy.Timer(rospy.Duration(0.1), self.update_callback)
         
@@ -61,7 +55,8 @@ class CameraNode:
         
     def update_callback(self, event=None):
         """Callback to update the image on the camera topic."""
-        
+        self.idx_pub.publish(Int32(data=self.cam_idx))
+            
         ret, frame = self.video_cap.read()
         if not ret:
             rospy.logwarn(f"Couldn't get image frame for camera {self.cam_idx}")
@@ -138,7 +133,7 @@ class CameraNode:
         self.image_error_pub.publish(error)
 
 def main(args):
-    rospy.sleep(3) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
+    rospy.sleep(5) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
     rospy.loginfo("Starting a CameraNode ...")
     node = CameraNode()
     

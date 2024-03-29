@@ -186,13 +186,13 @@ class VisualServoing:
         self.prev_eef = self.latest_eef
         self.prev_joints = self.latest_joints
         
-    def get_move(self):
+    def get_move(self, step_size):
         """Get the delta for the next motion.
 
         Returns:
             list: delta joint movement
         """
-        return -self.step_size * (self.inverse_jacobian @ self.latest_error.T).T
+        return -step_size * (self.inverse_jacobian @ self.latest_error.T).T
     
     def visual_servo_converge(self, max_it: int, step_size: float):
         """Run visual servoing and attempt to converge
@@ -204,14 +204,22 @@ class VisualServoing:
         # TODO: Chen has suggested that we may need to add scales for each task to balance convergence. 
         # This is a good idea, not sure how to implement yet though.
         
-        
-        
         rospy.loginfo(f"Starting VS Converge with max iterations {max_it} and step_size {step_size}")
         self.update_jacobian()
+        
+        # for updating step size, we use a ratio: step_init / (1/error_init) = current_step / (1/error_current)
+        # this is so that as error decreases, we step in larger amounts towards the target.
+        initial_error = np.linalg.norm(self.latest_error)
+        initial_stepsize = step_size
+        
         for i in range(max_it):
             self.broyden_update()
             
-            delta_move = self.get_move()[0]
+            # calculate new stepsize, and move.
+            step = (initial_stepsize / (1 / initial_error)) * (1 / np.linalg.norm(self.latest_error))
+            step = min(step, 0.3)
+            rospy.loginfo(f"STEP: {step}")
+            delta_move = self.get_move(step)[0]
             rospy.loginfo(f"DELTA MOVE: {delta_move}")
             
             self.move(delta_move)

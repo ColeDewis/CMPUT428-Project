@@ -15,9 +15,9 @@ if __name__ == "__main__":
     terminals = {
         "core": "roscore",
         "rqt": "rqt",
-        "camera1": "rosrun camera_node camera_node.py _cam_idx:=2", # TODO: change this to take in idx somehow. 
-        "camera2": "rosrun camera_node camera_node.py _cam_idx:=4", # TODO: change this to take in idx somehow. 
-        "tracking": "rosrun camera_node tracking_node.py _idxs:=\"[2, 4]\"", 
+        "camera1": "rosrun camera_node camera_node.py _cam_idx:=0", # TODO: change this to take in idx somehow. 
+        "camera2": "rosrun camera_node camera_node.py _cam_idx:=2", # TODO: change this to take in idx somehow. 
+        "tracking": "rosrun camera_node tracking_node.py _idxs:=\"[0, 2]\"", 
     }
     
     for name, cmd in terminals.items():
