@@ -66,7 +66,9 @@ class MyWidget(QWidget):
         self.initDisable(True)
         self.goDisable(True)
 
-        self.imSub = rospy.Subscriber("img_pub_node", Image, self.updateIm)
+        self.imSub1 = rospy.Subscriber("img_pub_node", Image, self.updateIm1)
+        self.imSub2 = rospy.Subscriber("img_pub_node", Image, self.updateIm2)
+
 
 
 
@@ -115,30 +117,27 @@ class MyWidget(QWidget):
             self.initDisable(False)
 
     def DistanceDone(self):
-        if self.ui.Dim1Val.text() and self.ui.Dim2Val.text() and self.ui.TaskDistance.text() and self.ui.TaskDirection.text():
-            '''int8 desired_distance
-            int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
-            float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
-            float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
-            u = float(self.ui.Dim1Val.text())
-            v = float(self.ui.Dim2Val.text())
-            dis = int(self.ui.TaskDistance.text())
-            direct = int(self.ui.TaskDirection.text())
+        '''int8 desired_distance
+        int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
+        float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
+        float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
+        u = float(self.ui.Dim1Val.text())
+        v = float(self.ui.Dim2Val.text())
+        dis = int(self.ui.TaskDistance.text())
+        direct = int(self.ui.TaskDirection.text())
 
-            self.Distance1.reference_distance_u = u
-            self.Distance1.reference_distance_v = v
-            self.Distance2.reference_distance_u = u
-            self.Distance2.reference_distance_v = v
+        self.Distance1.reference_distance_u = u
+        self.Distance1.reference_distance_v = v
+        self.Distance2.reference_distance_u = u
+        self.Distance2.reference_distance_v = v
 
-            self.Distance1.desired_distance = dis
-            self.Distance2.desired_distance = dis
-            self.Distance1.direction = direct
-            self.Distance2.direction = direct
+        self.Distance1.desired_distance = dis
+        self.Distance2.desired_distance = dis
+        self.Distance1.direction = direct
+        self.Distance2.direction = direct
 
-            self.error_req1.distance_info = self.Distance1
-            self.error_req2.distance_info = self.Distance2
-
-
+        self.error_req1.distance_info = self.Distance1
+        self.error_req2.distance_info = self.Distance2
 
             
     
@@ -284,7 +283,7 @@ class MyWidget(QWidget):
                 self.initDisable(False)
 
 
-    def updateIm(self,data: Image):
+    def updateIm1(self,data: Image):
         frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
         #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = frame.shape
@@ -292,3 +291,12 @@ class MyWidget(QWidget):
         QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
         pixmap = QPixmap(QPixmap.fromImage(QIm))
         self.ui.im_1.setPixmap(pixmap)
+
+    def updateIm2(self,data: Image):
+        frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
+        #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, ch = frame.shape
+        b = ch * w
+        QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
+        pixmap = QPixmap(QPixmap.fromImage(QIm))
+        self.ui.im_2.setPixmap(pixmap)
