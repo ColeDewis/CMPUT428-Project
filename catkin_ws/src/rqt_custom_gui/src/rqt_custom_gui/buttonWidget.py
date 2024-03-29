@@ -15,7 +15,7 @@ from std_msgs.msg import Empty, Int32
 from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D, DistanceDefinition
 import cv2   
 from rqt_custom_gui.trackerWidget import TrackerPlace
-from rqt_custom_gui.distanceWiget import DistancePlace
+from rqt_custom_gui.distanceWidget import DistancePlace
 
 
 
@@ -26,13 +26,13 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        self.camIndices = [0,1]
-        #cam_idx1 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
-        #cam_idx2 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
-
-        #self.camIndices = [cam_idx1.data, cam_idx2.data]
+        self.camIndices = []
+        cam_idx_sub = rospy.Subscriber("/cam_idx", Int32, self.idx_cb)
+        while len(self.camIndices) < 2:
+            continue
+        cam_idx_sub.unregister()
         
-        #rospy.loginfo("Cam Indices: ", self.camIndices)
+        rospy.loginfo(f"Cam Indices: {self.camIndices}")
 
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
@@ -66,9 +66,12 @@ class MyWidget(QWidget):
         self.initDisable(True)
         self.goDisable(True)
 
-        self.imSub = rospy.Subscriber("img_pub_node", Image, self.updateIm)
+        self.error_req_pub = rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10)
+        self.vs_start_pub = rospy.Publisher("/vs_start", Empty, queue_size=10)
 
-
+    def idx_cb(self, data):
+        if data.data not in self.camIndices: 
+            self.camIndices.append(data.data)
 
     def tasksDisable(self, i):
         self.ui.PtoPButton.setDisabled(i)
@@ -95,11 +98,11 @@ class MyWidget(QWidget):
     
         self.trackers_placed += 1
 
-        #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-        #msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+        msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+        msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-        msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-        msg2 = rospy.wait_for_message("img_pub_node", Image) 
+        # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+        # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
         cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
         cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
@@ -137,13 +140,16 @@ class MyWidget(QWidget):
 
             self.error_req1.distance_info = self.Distance1
             self.error_req2.distance_info = self.Distance2
-
-
-
+            
+            self.ui.PlaceTrackers.setDisabled(True)
+            self.ui.DoneDis.setDisabled(True)
+            self.ui.DoneDis.setStyleSheet("background-color : green")
             
     
     def DistanceReset(self):
-        pass
+        self.ui.PlaceTrackers.setDisabled(False)
+        self.ui.DoneDis.setDisabled(False)
+        self.ui.DoneDis.setStyleSheet("background-color : none")
 
     def PtoPClick(self):
         self.error_req1.type = "ptpt"
@@ -226,12 +232,10 @@ class MyWidget(QWidget):
         self.initTrackers()
 
     def InitButtonClick(self):
-        """GO Button click listener. """
-        # rospy.loginfo("Sending Visual Servo Start!")
-        # rospy.Publisher("/vs_start", Empty).publish(Empty())
+        """Init tracker Button click listener. """
         rospy.loginfo("Sending error info stuff")
-        rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req1)
-        rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10).publish(self.error_req2)
+        self.error_req_pub.publish(self.error_req1)
+        self.error_req_pub.publish(self.error_req2)
         self.goDisable(False)
         self.ui.InitButton.setStyleSheet("background-color : green")
         self.initDisable(True)
@@ -254,21 +258,21 @@ class MyWidget(QWidget):
         for i in self.buttons:
             i.setStyleSheet("background-color : none")
 
-    def GoButtonClick(Self):
-        """I'm not 100% sure how you want to start the visual servoing but do it here"""
-        # TODO Cole help me Cole
-        pass
+    def GoButtonClick(self):
+        """Visual servo "go" button, sends vs_start command."""
+        rospy.loginfo("Sending Visual Servo Start!")
+        self.vs_start_pub.publish(Empty())
 
     def initTrackers(self):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
             self.trackers_placed += 1
 
-            #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-            #msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+            msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+            msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-            msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-            msg2 = rospy.wait_for_message("img_pub_node", Image) 
+            # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
             cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)

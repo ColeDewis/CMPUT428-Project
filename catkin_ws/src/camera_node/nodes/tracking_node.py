@@ -7,7 +7,7 @@ from random import randint
 
 from sensor_msgs.msg import Image
 from visual_servoing.msg import Error, TrackedPoint, TrackedPoints
-from custom_msgs.msg import ErrorDefinition, TrackRequest, Point2D
+from custom_msgs.msg import ErrorDefinition, TrackRequest, Point2D, DistanceDefinition
 
 import sympy as sy
 import matplotlib.pyplot as plt
@@ -141,6 +141,7 @@ class TrackingNode:
         cam_idx = data.cam_idx
         err_type = data.type
         components = data.components
+        distance_definition: DistanceDefinition = data.distance_info
         
         if err_type == "ptpt":
             # assume we have 2 points
@@ -159,6 +160,7 @@ class TrackingNode:
                 fixed_idxs = [indexes[0]]
             else:
                 fixed_idxs = [indexes[1]]
+                
             
         elif err_type == "ptln":
             # we don't know what is what so check
@@ -185,6 +187,7 @@ class TrackingNode:
                 fixed_idxs = [indexes[0]]
             else:
                 fixed_idxs = [indexes[1], indexes[2]]
+                
             
         elif err_type == "lnln":
             # assume we have 2 lines
@@ -206,9 +209,72 @@ class TrackingNode:
                 fixed_idxs = [indexes[0], indexes[1]]
             else:
                 fixed_idxs = [indexes[2], indexes[3]]
+                
         
         self.error_formulas[cam_idx].append(ErrorInfo(err_type, error, indexes, err_idx, fixed_idxs))
         rospy.loginfo(f"INDEXES: {indexes}")
+        
+    def get_reference_plane_info(self, distance_info: DistanceDefinition, static_pts):
+        p1, p2, p3, p4 = distance_info.plane_points
+        
+        # We make the assumption that the points defined clockwise
+        p1 = np.array([p1.x, p1.y, 1])
+        p2 = np.array([p2.x, p2.y, 1])
+        p3 = np.array([p3.x, p3.y, 1])
+        p4 = np.array([p4.x, p4.y, 1])
+        
+        # calculate vanishing point 1
+        l1 = np.cross(p1, p2)
+        l2 = np.cross(p3, p4)
+        v1 = np.cross(l1, l2) 
+        
+        # calculate vanishing point 2
+        l3 = np.cross(p1, p4)
+        l4 = np.cross(p2, p3)
+        v2 = np.cross(l3, l4)
+        
+        vl = np.cross(v1, v2)
+        
+        for point in static_pts:
+            a = np.array([point.x, point.y, 1])
+            if distance_info.direction in (1, 3):
+                search_line = np.cross(a, v1)
+                v3_finder = np.cross(p4, a)
+                v3 = np.cross(v3_finder, vl)
+                pt_finder = np.cross(p3, v3)
+                
+                
+                p_t = np.cross(search_line, pt_finder)
+                
+                # NOW: segment a-p_t is the same as our reference distance p3-p4.
+                # we have formulated our problem now as a search along line search_line, where our points that we use are:
+                # 1) a, 2) p_t, 3) a+epsilon, 4) p*, 5) v1
+                
+            elif distance_info.direction in (2, 4): 
+                search_line = np.cross(a, v2)
+                v3_finder = np.cross(p4, a)
+                v3 = np.cross(v3_finder, vl)
+                pt_finder = np.cross(p1, v3)
+                
+                p_t = np.cross(search_line, pt_finder)
+                
+                 # NOW: segment a-p_t is the same as our reference distance p1-p4.
+                # we have formulated our problem now as a search along line search_line, where our points that we use are:
+                # 1) a, 2) p_t, 3) a+epsilon, 4) p*, 5) v2
+                
+        
+        
+    def get_distance_offset_points(self, distance_info: DistanceDefinition, fixed_pts):
+        direction = distance_info.direction
+        
+        if direction == 0: # positive x
+            pass
+        elif direction == 1: # positive y
+            pass
+        elif direction == 2: # negative x
+            pass
+        elif direction == 3: # negative y
+            pass
         
     def update_trackers(self, data: Image):
         """Update trackers with a Lukas Kanade update given the new frame
@@ -282,7 +348,7 @@ class TrackingNode:
         self.image_error_pub.publish(error)
 
 def main(args):
-    rospy.sleep(3) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
+    rospy.sleep(5) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
     rospy.loginfo("Starting TrackingNode ...")
     node = TrackingNode()
     

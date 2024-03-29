@@ -25,7 +25,6 @@ class CustomGUI(Plugin):
         self.setObjectName('CustomGui')
         self.layout = QVBoxLayout()
         
-
         # Process standalone plugin command-line arguments
         from argparse import ArgumentParser
         parser = ArgumentParser()
