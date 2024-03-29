@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>917</width>
-    <height>515</height>
+    <width>1055</width>
+    <height>554</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,15 +16,15 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>30</x>
+     <x>270</x>
      <y>10</y>
-     <width>851</width>
-     <height>111</height>
+     <width>781</width>
+     <height>161</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <property name="spacing">
-     <number>40</number>
+     <number>20</number>
     </property>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
@@ -33,6 +33,12 @@
       </property>
       <item>
        <widget class="QLabel" name="TaskLabel">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="text">
          <string>Tasks</string>
         </property>
@@ -46,6 +52,13 @@
         <property name="spacing">
          <number>10</number>
         </property>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="LtoLButton">
+          <property name="text">
+           <string>L to L</string>
+          </property>
+         </widget>
+        </item>
         <item row="0" column="0">
          <widget class="QPushButton" name="PtoPButton">
           <property name="text">
@@ -60,13 +73,6 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="LtoLButton">
-          <property name="text">
-           <string>L to L</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
      </layout>
@@ -78,6 +84,12 @@
       </property>
       <item>
        <widget class="QLabel" name="TrackerLabel">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>25</height>
+         </size>
+        </property>
         <property name="text">
          <string>Trackers</string>
         </property>
@@ -158,6 +170,113 @@
        </widget>
       </item>
      </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="verticalLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>10</y>
+     <width>261</width>
+     <height>161</height>
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_5">
+    <item>
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Initialize Dimensions</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QFormLayout" name="formLayout">
+      <property name="fieldGrowthPolicy">
+       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+      </property>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="Dim1Val">
+        <property name="maximumSize">
+         <size>
+          <width>1200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="Dim2Val">
+        <property name="maximumSize">
+         <size>
+          <width>1200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="Dim1Button">
+        <property name="text">
+         <string>Dim 1</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QPushButton" name="Dim2Button">
+        <property name="text">
+         <string>Dim 2</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QPushButton" name="Done">
+        <property name="text">
+         <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="Reset">
+        <property name="text">
+         <string>Done</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="horizontalLayoutWidget_2">
+   <property name="geometry">
+    <rect>
+     <x>-1</x>
+     <y>169</y>
+     <width>1051</width>
+     <height>381</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <item>
+     <widget class="QLabel" name="im_1">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="im_2">
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

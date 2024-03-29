@@ -25,13 +25,13 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        #self.camIndices = [0,1]
-        cam_idx1 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
-        cam_idx2 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
+        self.camIndices = [0,1]
+        #cam_idx1 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
+        #cam_idx2 = rospy.wait_for_message("cam_idx", Int32) # subscribe to the whatsapp topic and get the message
 
-        self.camIndices = [cam_idx1.data, cam_idx2.data]
+        #self.camIndices = [cam_idx1.data, cam_idx2.data]
         
-        rospy.loginfo("Cam Indices: ", self.camIndices)
+        #rospy.loginfo("Cam Indices: ", self.camIndices)
 
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
@@ -57,6 +57,10 @@ class MyWidget(QWidget):
         self.trackersDisable(True)
         self.initDisable(True)
         self.goDisable(True)
+
+        self.imSub = rospy.Subscriber("img_pub_node", Image, self.updateIm)
+
+
 
     def tasksDisable(self, i):
         self.ui.PtoPButton.setDisabled(i)
@@ -216,3 +220,13 @@ class MyWidget(QWidget):
             
             if self.trackers_placed == 2:
                 self.initDisable(False)
+
+
+    def updateIm(self,data: Image):
+        frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
+        #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        h, w, ch = frame.shape
+        b = ch * w
+        QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
+        pixmap = QPixmap(QPixmap.fromImage(QIm))
+        self.ui.im_1.setPixmap(pixmap)
