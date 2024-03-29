@@ -13,163 +13,153 @@
   <property name="windowTitle">
    <string>Widget</string>
   </property>
-  <widget class="QLabel" name="TrackerLabel">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>430</x>
+     <x>30</x>
      <y>10</y>
-     <width>63</width>
-     <height>20</height>
+     <width>851</width>
+     <height>111</height>
     </rect>
    </property>
-   <property name="text">
-    <string>Trackers</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="FPButton">
-   <property name="geometry">
-    <rect>
-     <x>330</x>
-     <y>40</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Fixed Point</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="FLButton">
-   <property name="geometry">
-    <rect>
-     <x>420</x>
-     <y>40</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Fixed Line</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="TPButton">
-   <property name="geometry">
-    <rect>
-     <x>330</x>
-     <y>80</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Track Point</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="TLButton">
-   <property name="geometry">
-    <rect>
-     <x>420</x>
-     <y>80</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Track Line</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="TaskLabel">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>10</y>
-     <width>63</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Tasks</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="PtoPButton">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>40</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>P to P</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="PtoLButton">
-   <property name="geometry">
-    <rect>
-     <x>160</x>
-     <y>40</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>P to L</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="LtoLButton">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>80</y>
-     <width>83</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>L to L</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="GoButton">
-   <property name="geometry">
-    <rect>
-     <x>682</x>
-     <y>40</y>
-     <width>131</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>GO!</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="ResetButton">
-   <property name="geometry">
-    <rect>
-     <x>680</x>
-     <y>80</y>
-     <width>131</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Reset</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="TrackerGoButton">
-   <property name="geometry">
-    <rect>
-     <x>510</x>
-     <y>40</y>
-     <width>71</width>
-     <height>71</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Place 
- Selected 
- Tracker</string>
-   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <property name="spacing">
+     <number>40</number>
+    </property>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="TaskLabel">
+        <property name="text">
+         <string>Tasks</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QGridLayout" name="gridLayout">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item row="0" column="0">
+         <widget class="QPushButton" name="PtoPButton">
+          <property name="text">
+           <string>P to P</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QPushButton" name="PtoLButton">
+          <property name="text">
+           <string>P to L</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="LtoLButton">
+          <property name="text">
+           <string>L to L</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="TrackerLabel">
+        <property name="text">
+         <string>Trackers</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>10</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="0" column="0">
+             <widget class="QPushButton" name="FPButton">
+              <property name="text">
+               <string>Fixed Point</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="TPButton">
+              <property name="text">
+               <string>Track Point</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="FLButton">
+              <property name="text">
+               <string>Fixed Line</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="TLButton">
+              <property name="text">
+               <string>Track Line</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
+       <number>10</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="InitButton">
+        <property name="text">
+         <string>Initialize</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="GoButton">
+        <property name="text">
+         <string>GO!</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="ResetButton">
+        <property name="text">
+         <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>
