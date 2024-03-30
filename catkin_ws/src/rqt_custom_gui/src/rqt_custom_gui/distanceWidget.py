@@ -34,6 +34,8 @@ class DistancePlace(QWidget):
 
         self.bridge = CvBridge()
         self.zoomed = False
+        self.scale_x = self.img_label.width()//20
+        self.scale_y = self.img_label.height()//20
 
 
     def setImage(self): 
@@ -52,29 +54,38 @@ class DistancePlace(QWidget):
             event: mousePressEvent
         """
         if self.zoomed:
-            x = event.pos().x()
-            y = event.pos().y()
-            rospy.loginfo(f"Got click: {x}, {y}")
+            new_x = event.pos().x()
+            new_y = event.pos().y()
+
             self.zoomed = False
-        else:
-            x = event.pos().x()
-            y = event.pos().y()
+            self.setImage()
+            # figure out x, y conversion
+            x = new_x / 10 + (self.x - self.scale_x)
+            y = new_y / 10 + (self.y - self.scale_y)
+
             rospy.loginfo(f"Got click: {x}, {y}")
             self.clicks.append([x,y])
             self.clickCount = self.clickCount - 1
-            self.zoomed = True
-            self.zoom(x,y)
 
             if self.clickCount == 0:
                 self.shutdown()
             else:
-                #self.drawPoint(x,y)
-                pass
+                self.drawPoint(x,y)
+                #pass
+
+        else:
+            self.x = event.pos().x()
+            self.y = event.pos().y()
+            
+            self.zoomed = True
+            self.zoom(self.x,self.y)
+
+            
 
     def drawPoint(self, x, y):
         im = cv2.imread(self.imName)
 
-        im = cv2.circle(im, (x,y+55), 2, (255,0,0), 3) 
+        im = cv2.circle(im, (round(x),round(y)+55), 2, (255,0,0), 3) 
         cv2.imwrite(self.imName, im)
         self.setImage()
 
@@ -82,17 +93,19 @@ class DistancePlace(QWidget):
         # get zoomed in version of image:
         self.img_label.setPixmap(QPixmap())
 
+
         self.zoomed = True
-        xrange = [x-32, x+32]
-        yrange = [y-32, y+32]
+        xrange = [x-self.scale_x, x+self.scale_x]
+        yrange = [y-self.scale_y+55, y+self.scale_y+55]
         new_im = cv2.imread(self.imName)
+        new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
         new_im = new_im[yrange[0]:yrange[1],xrange[0]:xrange[1]]
         h, w, ch = new_im.shape
         b = ch * w
 
         QIm = QImage(new_im.data.tobytes(), w, h, b, QImage.Format_RGB888)
         pixmap = QPixmap(QPixmap.fromImage(QIm))
-        self.img_label.setPixmap(pixmap)
+        self.img_label.setPixmap(pixmap.scaled(self.img_label.width(), self.img_label.height()))
 
         return x,y
         

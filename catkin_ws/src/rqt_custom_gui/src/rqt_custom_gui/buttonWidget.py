@@ -125,8 +125,14 @@ class MyWidget(QWidget):
         int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
         float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
         float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
-        u = float(self.ui.Dim1Val.text())
-        v = float(self.ui.Dim2Val.text())
+        if self.ui.Dim1Val.text():
+            u = float(self.ui.Dim1Val.text())
+        else:
+            u = 0.0
+        if self.ui.Dim2Val.text():
+            v = float(self.ui.Dim2Val.text())
+        else:
+            v = 0.0
         dis = int(self.ui.TaskDistance.text())
         direct = int(self.ui.TaskDirection.text())
 
