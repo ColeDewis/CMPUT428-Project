@@ -15,6 +15,7 @@ from std_msgs.msg import Empty
 from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D
 import cv2
 from rqt_custom_gui.buttonWidget import MyWidget
+from rqt_custom_gui.trackerWidget import TrackerPlace
 
 
 class CustomGUI(Plugin):

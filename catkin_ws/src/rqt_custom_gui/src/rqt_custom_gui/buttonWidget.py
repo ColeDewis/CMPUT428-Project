@@ -8,6 +8,7 @@ from python_qt_binding import loadUi
 from rqt_gui_py.plugin import Plugin
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtGui import QPixmap, QImage
+from PyQt5 import QtCore
 from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
@@ -26,13 +27,13 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        self.camIndices = []
+        '''self.camIndices = []
         cam_idx_sub = rospy.Subscriber("/cam_idx", Int32, self.idx_cb)
         while len(self.camIndices) < 2:
             continue
         cam_idx_sub.unregister()
         
-        rospy.loginfo(f"Cam Indices: {self.camIndices}")
+        rospy.loginfo(f"Cam Indices: {self.camIndices}")'''
 
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
@@ -47,7 +48,7 @@ class MyWidget(QWidget):
         self.ui.InitButton.clicked.connect(self.InitButtonClick)
         self.ui.GoButton.clicked.connect(self.GoButtonClick)
 
-        self.ui.PlaceTrackers.clicked.connect(self.PlaceTrackersClick)
+        self.ui.PlaceTrackers.clicked.connect(self.PlaceDistanceClick)
         self.ui.DoneDis.clicked.connect(self.DistanceDone)
         self.ui.ResetDis.clicked.connect(self.DistanceReset)
 
@@ -65,6 +66,12 @@ class MyWidget(QWidget):
         self.trackersDisable(True)
         self.initDisable(True)
         self.goDisable(True)
+
+        self.imSub1 = rospy.Subscriber("img_pub_node", Image, self.updateIm1)
+        self.imSub2 = rospy.Subscriber("img_pub_node", Image, self.updateIm2)
+        self.sizeSet1 = False
+        self.sizeSet2 = False
+        self.notpaused = True
 
         self.error_req_pub = rospy.Publisher("/tracking_node/error_request", ErrorDefinition, queue_size=10)
         self.vs_start_pub = rospy.Publisher("/vs_start", Empty, queue_size=10)
@@ -94,56 +101,51 @@ class MyWidget(QWidget):
         ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'form.ui')
         self.ui = loadUi(ui_file, self)
 
-    def PlaceTrackersClick(self):
-    
-        self.trackers_placed += 1
+    def PlaceDistanceClick(self):
 
-        msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-        msg2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+        self.notpaused = False
 
-        # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-        # msg2 = rospy.wait_for_message("img_pub_node", Image) 
+        #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+        #msg 2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+
+        msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+        msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
         cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
         cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
-        tracker_place_widget = DistancePlace('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.Distance1)
+        DistancePlace('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.Distance1,self.ui.im_1)
         
         cv2_img = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
         cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
-        DistancePlace('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.Distance2 )
+        DistancePlace('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.Distance2, self.ui.im_2 )
         
-        self.TrackerType = None
-        
-        if self.trackers_placed == 2:
-            self.initDisable(False)
 
     def DistanceDone(self):
-        if self.ui.Dim1Val.text() and self.ui.Dim2Val.text() and self.ui.TaskDistance.text() and self.ui.TaskDirection.text():
-            '''int8 desired_distance
-            int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
-            float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
-            float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
-            u = float(self.ui.Dim1Val.text())
-            v = float(self.ui.Dim2Val.text())
-            dis = int(self.ui.TaskDistance.text())
-            direct = int(self.ui.TaskDirection.text())
+        '''int8 desired_distance
+        int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
+        float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
+        float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
+        u = float(self.ui.Dim1Val.text())
+        v = float(self.ui.Dim2Val.text())
+        dis = int(self.ui.TaskDistance.text())
+        direct = int(self.ui.TaskDirection.text())
 
-            self.Distance1.reference_distance_u = u
-            self.Distance1.reference_distance_v = v
-            self.Distance2.reference_distance_u = u
-            self.Distance2.reference_distance_v = v
+        self.Distance1.reference_distance_u = u
+        self.Distance1.reference_distance_v = v
+        self.Distance2.reference_distance_u = u
+        self.Distance2.reference_distance_v = v
 
-            self.Distance1.desired_distance = dis
-            self.Distance2.desired_distance = dis
-            self.Distance1.direction = direct
-            self.Distance2.direction = direct
+        self.Distance1.desired_distance = dis
+        self.Distance2.desired_distance = dis
+        self.Distance1.direction = direct
+        self.Distance2.direction = direct
 
-            self.error_req1.distance_info = self.Distance1
-            self.error_req2.distance_info = self.Distance2
-            
-            self.ui.PlaceTrackers.setDisabled(True)
-            self.ui.DoneDis.setDisabled(True)
-            self.ui.DoneDis.setStyleSheet("background-color : green")
+        self.error_req1.distance_info = self.Distance1
+        self.error_req2.distance_info = self.Distance2
+        
+        self.ui.PlaceTrackers.setDisabled(True)
+        self.ui.DoneDis.setDisabled(True)
+        self.ui.DoneDis.setStyleSheet("background-color : green")
             
     
     def DistanceReset(self):
@@ -288,11 +290,30 @@ class MyWidget(QWidget):
                 self.initDisable(False)
 
 
-    def updateIm(self,data: Image):
-        frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
-        #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        h, w, ch = frame.shape
-        b = ch * w
-        QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
-        pixmap = QPixmap(QPixmap.fromImage(QIm))
-        self.ui.im_1.setPixmap(pixmap)
+    def updateIm1(self,data: Image):
+        if len(self.Distance1.plane_points) ==  4 or self.notpaused:
+            frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
+            #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = frame.shape
+            b = ch * w
+            QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
+            pixmap = QPixmap(QPixmap.fromImage(QIm))
+            self.ui.im_1.setPixmap(pixmap)
+            if self.sizeSet1 == False:
+                self.sizeSet1 = True
+                self.ui.im_1.setGeometry(QtCore.QRect(self.ui.im_1.x(), self.ui.im_1.y(), QIm.size().width(), QIm.size().height())) 
+
+
+
+    def updateIm2(self,data: Image):
+        if len(self.Distance2.plane_points) == 4 or self.notpaused:
+            frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
+            #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = frame.shape
+            b = ch * w
+            QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
+            pixmap = QPixmap(QPixmap.fromImage(QIm))
+            self.ui.im_2.setPixmap(pixmap)
+            if self.sizeSet2 == False:
+                self.sizeSet2 = True
+                self.ui.im_2.setGeometry(QtCore.QRect(self.ui.im_2.x(), self.ui.im_2.y(), QIm.size().width(), QIm.size().height())) 
