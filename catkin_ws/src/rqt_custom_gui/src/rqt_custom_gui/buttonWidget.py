@@ -27,6 +27,7 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
+        self.camIndices = [0,1] 
         '''self.camIndices = []
         cam_idx_sub = rospy.Subscriber("/cam_idx", Int32, self.idx_cb)
         while len(self.camIndices) < 2:
@@ -60,8 +61,12 @@ class MyWidget(QWidget):
         self.error_req1 = ErrorDefinition()
         self.error_req2 = ErrorDefinition()
         self.trackers_placed = 0
+        self.pointsplaced1 = len(self.error_req1.components)
+        self.pointsplaced2 = len(self.error_req2.components)
+
         self.Distance1 = DistanceDefinition()
         self.Distance2 = DistanceDefinition()
+        self.distance1inprog, self.distance2inprog = False,False
 
         self.trackersDisable(True)
         self.initDisable(True)
@@ -104,6 +109,8 @@ class MyWidget(QWidget):
     def PlaceDistanceClick(self):
 
         self.notpaused = False
+        self.distance1inprog = True
+        self.distance2inprog = True
 
         #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
         #msg 2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
@@ -152,12 +159,15 @@ class MyWidget(QWidget):
         self.ui.PlaceTrackers.setDisabled(True)
         self.ui.DoneDis.setDisabled(True)
         self.ui.DoneDis.setStyleSheet("background-color : green")
+        self.notpaused = True
             
     
     def DistanceReset(self):
         self.ui.PlaceTrackers.setDisabled(False)
         self.ui.DoneDis.setDisabled(False)
         self.ui.DoneDis.setStyleSheet("background-color : none")
+        self.notpaused = True
+
 
     def PtoPClick(self):
         self.error_req1.type = "ptpt"
@@ -274,30 +284,34 @@ class MyWidget(QWidget):
     def initTrackers(self):
         """Init Trackers button listener; opens a tracker place window to place the trackers."""
         if self.TrackerType is not None:
+            self.pointsplaced1 = len(self.error_req1.components)
+            self.pointsplaced2 = len(self.error_req2.components)
+
             self.trackers_placed += 1
+            self.notpaused = False
+            
 
-            msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-            msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+            #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+            #msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-            # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-            # msg2 = rospy.wait_for_message("img_pub_node", Image) 
+            msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
             cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
-            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req1)
+            TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im1.jpg', self.error_req1,self.ui.im_1)
             
             cv2_img = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
-            tracker_place_widget = TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.error_req2)
+            TrackerPlace(self.TrackerType, 'catkin_ws/src/rqt_custom_gui/resource/im2.jpg', self.error_req2,self.ui.im_2)
             
-            self.TrackerType = None
             
             if self.trackers_placed == 2:
                 self.initDisable(False)
 
 
     def updateIm1(self,data: Image):
-        if len(self.Distance1.plane_points) ==  4 or self.notpaused:
+        if self.notpaused:
             frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h, w, ch = frame.shape
@@ -308,11 +322,21 @@ class MyWidget(QWidget):
             if self.sizeSet1 == False:
                 self.sizeSet1 = True
                 self.ui.im_1.setGeometry(QtCore.QRect(self.ui.im_1.x(), self.ui.im_1.y(), QIm.size().width(), QIm.size().height())) 
+        elif self.pointsplaced1-len(self.error_req1.components)==-1and self.pointsplaced2-len(self.error_req2.components)==-1:
+            self.pointsplaced2 = len(self.error_req2.components)
+            self.pointsplaced1 = len(self.error_req1.components)
+            self.TrackerType = None
+            self.notpaused = True
+        elif self.distance1inprog:
+            if  len(self.Distance1.plane_points) ==  4:
+                self.distance1inprog = False
+                if not self.distance2inprog:
+                    self.notpaused = True
 
-
+        
 
     def updateIm2(self,data: Image):
-        if len(self.Distance2.plane_points) == 4 or self.notpaused:
+        if self.notpaused:
             frame = self.bridge.imgmsg_to_cv2(img_msg=data, desired_encoding="rgb8")
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h, w, ch = frame.shape
@@ -323,3 +347,14 @@ class MyWidget(QWidget):
             if self.sizeSet2 == False:
                 self.sizeSet2 = True
                 self.ui.im_2.setGeometry(QtCore.QRect(self.ui.im_2.x(), self.ui.im_2.y(), QIm.size().width(), QIm.size().height())) 
+        elif self.pointsplaced2-len(self.error_req2.components)==-1 and self.pointsplaced1-len(self.error_req1.components)==-1: 
+            self.pointsplaced2 = len(self.error_req2.components)
+            self.pointsplaced1 = len(self.error_req1.components)
+            self.TrackerType = None
+            self.notpaused = True
+        elif self.distance2inprog:
+            if  len(self.Distance2.plane_points) ==  4:
+                self.distance2inprog = False
+                if not self.distance1inprog:
+                    self.notpaused = True
+         

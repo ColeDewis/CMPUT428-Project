@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtGui import QPixmap, QImage
 from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
-from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty
 from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D, DistanceDefinition
 import cv2
@@ -32,16 +31,12 @@ class DistancePlace(QWidget):
         self.img_label.mousePressEvent = self.getPos
         self.clicks = []
 
-        self.bridge = CvBridge()
         self.zoomed = False
         self.scale_x = self.img_label.width()//20
         self.scale_y = self.img_label.height()//20
 
 
     def setImage(self): 
-        ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'trackerPlace.ui')
-        self.ui = loadUi(ui_file, self)
-
         self.img = QImage(self.imName)
         pixmap = QPixmap(QPixmap.fromImage(self.img))
         self.img_label.setPixmap(pixmap)
@@ -84,7 +79,6 @@ class DistancePlace(QWidget):
 
     def drawPoint(self, x, y):
         im = cv2.imread(self.imName)
-
         im = cv2.circle(im, (round(x),round(y)+55), 2, (255,0,0), 3) 
         cv2.imwrite(self.imName, im)
         self.setImage()
