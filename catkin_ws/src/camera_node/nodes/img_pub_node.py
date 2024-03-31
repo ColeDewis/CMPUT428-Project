@@ -18,16 +18,21 @@ class ImgPubNode:
         pkg = rospkg.RosPack()
         path = pkg.get_path("camera_node")
         rospy.loginfo(path)
-        
-        self.base_img = cv2.imread(f"{path}/img/ruler_img.jpg") # CHANGE IMAGE NAME HERE!
-        self.base_img2 = cv2.imread(f"{path}/img/cool_patch.jpg") # CHANGE IMAGE NAME HERE!
-
-        self.base_img = cv2.cvtColor(self.base_img, cv2.COLOR_BGR2RGB)
-        self.base_img2 = cv2.cvtColor(self.base_img2, cv2.COLOR_BGR2RGB)
-
+        self.base_imgs = []
         self.bridge = cv_bridge.CvBridge()
-        self.image = self.bridge.cv2_to_imgmsg(self.base_img, encoding="rgb8")
-        self.image2 = self.bridge.cv2_to_imgmsg(self.base_img2, encoding="rgb8")
+        for i in range(0, 10):
+            base_img = cv2.imread(f"{path}/img/gnome/gnome-000"+str(i)+".jpg") # CHANGE IMAGE NAME HERE!
+            base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
+            image = self.bridge.cv2_to_imgmsg(base_img, encoding="rgb8")
+            self.base_imgs.append(image)
+
+        for i in range(10, 24):
+            base_img = cv2.imread(f"{path}/img/gnome/gnome-00"+str(i)+".jpg") # CHANGE IMAGE NAME HERE!
+            base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
+            image = self.bridge.cv2_to_imgmsg(base_img, encoding="rgb8")
+            self.base_imgs.append(image)
+        
+        
         # --- Publishers ---
         self.image_pub = rospy.Publisher("img_pub_node", Image, queue_size=10)
         
@@ -38,12 +43,11 @@ class ImgPubNode:
         
     def update_callback(self, event=None):
         """Callback to update the image on the camera topic."""
-        if self.check == 0:
-            self.image_pub.publish(self.image)
+        self.image_pub.publish(self.base_imgs[self.check])
+        self.check += 1
+        if self.check > 23:
             self.check = 1
-        else:
-            self.image_pub.publish(self.image2)
-            self.check = 0
+
         
 
 def main(args):

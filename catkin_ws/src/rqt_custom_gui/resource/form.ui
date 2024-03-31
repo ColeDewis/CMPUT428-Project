@@ -296,7 +296,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="TaskDistance"/>
+         <widget class="QLineEdit" name="TaskDistance">
+          <property name="text">
+           <string>0</string>
+          </property>
+        </widget>
         </item>
        </layout>
       </item>
@@ -316,9 +320,6 @@
          <widget class="QLineEdit" name="TaskDirection">
           <property name="text">
            <string>0</string>
-          </property>
-          <property name="placeholderText">
-           <string/>
           </property>
          </widget>
         </item>

@@ -10,13 +10,12 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel
 from PyQt5.QtGui import QPixmap, QImage
 from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
-from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Empty
 from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D
 import cv2
 
 class TrackerPlace(QWidget):
-    def __init__(self, trackerType, imName, error_req):
+    def __init__(self, trackerType, imName, error_req,qLabel):
         super(TrackerPlace, self).__init__()
         self.error_req = error_req
         self.track_req = TrackRequest()
@@ -34,7 +33,9 @@ class TrackerPlace(QWidget):
             raise TypeError("invalid tracker type")
         
         self.imName = imName
-        self.load_ui()
+        self.img_label = qLabel
+        self.img_label.setPixmap(QPixmap())
+        self.setImage()
         self.img_label.mousePressEvent = self.getPos
         self.clicks = []
 
@@ -43,14 +44,7 @@ class TrackerPlace(QWidget):
         self.img = QImage(self.imName)
         pixmap = QPixmap(QPixmap.fromImage(self.img))
         self.img_label.setPixmap(pixmap)
-        self.resize(self.img.size())
-        self.show()
 
-    def load_ui(self):
-        ui_file = os.path.join(rospkg.RosPack().get_path('rqt_custom_gui'), 'resource', 'trackerPlace.ui')
-        self.ui = loadUi(ui_file, self)
-        self.img_label = self.ui.mainLabel
-        self.setImage()
 
     def getPos(self , event):
         """Called on a mouse press event for the image; adds the clicked point to a points list.
@@ -65,6 +59,7 @@ class TrackerPlace(QWidget):
         self.clickCount = self.clickCount - 1
         if self.clickCount == 0:
             self.shutdown()
+            print("shutting down")
         else:
             self.drawPoint(x,y)
 
@@ -83,4 +78,4 @@ class TrackerPlace(QWidget):
             pt2d.y = pt[1]
             self.track_req.points.append(pt2d)
         self.error_req.components.append(self.track_req)
-        self.close()
+        self.img_label.mousePressEvent = None
