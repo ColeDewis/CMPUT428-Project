@@ -66,7 +66,6 @@ class DistancePlace(QWidget):
                 self.shutdown()
             else:
                 self.drawPoint(x,y)
-                #pass
 
         else:
             self.x = event.pos().x()
