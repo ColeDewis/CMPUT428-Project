@@ -39,7 +39,7 @@ class CustomGUI(Plugin):
             
         # Create QWidget
         self._widget = MyWidget()
-
+ 
         context.add_widget(self._widget)
 
 

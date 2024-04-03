@@ -32,8 +32,8 @@ class DistancePlace(QWidget):
         self.clicks = []
 
         self.zoomed = False
-        self.scale_x = self.img_label.width()//20
-        self.scale_y = self.img_label.height()//20
+        self.scale_x = self.img_label.width()/20
+        self.scale_y = self.img_label.height()/20
 
 
     def setImage(self): 
@@ -57,7 +57,7 @@ class DistancePlace(QWidget):
             # figure out x, y conversion
             x = new_x / 10 + (self.x - self.scale_x)
             y = new_y / 10 + (self.y - self.scale_y)
-
+            
             rospy.loginfo(f"Got click: {x}, {y}")
             self.clicks.append([x,y])
             self.clickCount = self.clickCount - 1
@@ -66,7 +66,6 @@ class DistancePlace(QWidget):
                 self.shutdown()
             else:
                 self.drawPoint(x,y)
-                #pass
 
         else:
             self.x = event.pos().x()
@@ -79,7 +78,7 @@ class DistancePlace(QWidget):
 
     def drawPoint(self, x, y):
         im = cv2.imread(self.imName)
-        im = cv2.circle(im, (round(x),round(y)+55), 2, (255,0,0), 3) 
+        im = cv2.circle(im, (round(x),round(y)), 2, (255,0,0), 3) 
         cv2.imwrite(self.imName, im)
         self.setImage()
 
@@ -89,8 +88,8 @@ class DistancePlace(QWidget):
 
 
         self.zoomed = True
-        xrange = [x-self.scale_x, x+self.scale_x]
-        yrange = [y-self.scale_y+55, y+self.scale_y+55]
+        xrange = [round(x-self.scale_x), round(x+self.scale_x)]
+        yrange = [round(y-self.scale_y), round(y+self.scale_y)]
         new_im = cv2.imread(self.imName)
         new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
         new_im = new_im[yrange[0]:yrange[1],xrange[0]:xrange[1]]

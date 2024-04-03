@@ -74,6 +74,7 @@ class MyWidget(QWidget):
 
         self.imSub1 = rospy.Subscriber("img_pub_node", Image, self.updateIm1)
         self.imSub2 = rospy.Subscriber("img_pub_node", Image, self.updateIm2)
+        self.sizeSet = False
         self.sizeSet1 = False
         self.sizeSet2 = False
         self.notpaused = True
@@ -316,12 +317,21 @@ class MyWidget(QWidget):
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h, w, ch = frame.shape
             b = ch * w
+            print(h,w)
             QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
+            if not self.sizeSet:
+                self.sizeSet1 = True
+                if self.sizeSet2:
+                    self.setImLayouts(w,h,1)
+                else:
+                    self.h = h
+                    self.w = w+10
+
+            
             pixmap = QPixmap(QPixmap.fromImage(QIm))
             self.ui.im_1.setPixmap(pixmap)
-            if self.sizeSet1 == False:
-                self.sizeSet1 = True
-                self.ui.im_1.setGeometry(QtCore.QRect(self.ui.im_1.x(), self.ui.im_1.y(), QIm.size().width(), QIm.size().height())) 
+            
+
         elif self.pointsplaced1-len(self.error_req1.components)==-1and self.pointsplaced2-len(self.error_req2.components)==-1:
             self.pointsplaced2 = len(self.error_req2.components)
             self.pointsplaced1 = len(self.error_req1.components)
@@ -344,9 +354,13 @@ class MyWidget(QWidget):
             QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
             pixmap = QPixmap(QPixmap.fromImage(QIm))
             self.ui.im_2.setPixmap(pixmap)
-            if self.sizeSet2 == False:
+            if not self.sizeSet:
                 self.sizeSet2 = True
-                self.ui.im_2.setGeometry(QtCore.QRect(self.ui.im_2.x(), self.ui.im_2.y(), QIm.size().width(), QIm.size().height())) 
+                if self.sizeSet1:
+                    self.setImLayouts(w,h,2)
+                else:
+                    self.h = h
+                    self.w = w+10
         elif self.pointsplaced2-len(self.error_req2.components)==-1 and self.pointsplaced1-len(self.error_req1.components)==-1: 
             self.pointsplaced2 = len(self.error_req2.components)
             self.pointsplaced1 = len(self.error_req1.components)
@@ -357,4 +371,14 @@ class MyWidget(QWidget):
                 self.distance2inprog = False
                 if not self.distance1inprog:
                     self.notpaused = True
+
+    def setImLayouts(self,w,h, f):
+        if f == 1:
+            self.ui.im_1.setGeometry(QtCore.QRect(self.ui.im_1.x(), self.ui.im_1.y(),w, h)) 
+            self.ui.im_2.setGeometry(QtCore.QRect(self.ui.im_2.x(), self.ui.im_2.y(),self.w, self.h)) 
+        elif f == 2:
+            self.ui.im_2.setGeometry(QtCore.QRect(self.ui.im_2.x(), self.ui.im_2.y(),w, h)) 
+            self.ui.im_1.setGeometry(QtCore.QRect(self.ui.im_1.x(), self.ui.im_1.y(),self.w, self.h)) 
+        self.ui.im_layouts.setGeometry(QtCore.QRect(self.ui.im_layouts.x(),self.ui.im_layouts.y(), w + self.w + 10, max(h, self.h)+10))
          
+        self.sizeSet = True
