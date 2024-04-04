@@ -202,7 +202,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_2">
+  <widget class="QWidget" name="im_layouts">
    <property name="geometry">
     <rect>
      <x>0</x>

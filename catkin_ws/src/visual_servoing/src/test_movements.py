@@ -22,5 +22,5 @@ if __name__ == "__main__":
     print("BEFORE: ", rospy.get_rostime())
     success = gen3.send_joint_angles(angles)
     print("AFTER: ", rospy.get_rostime())
-    gen3.send_gripper_command(0.5)
+    gen3.send_gripper_command(0.99)
     print("Done. Joints:", gen3.position)
