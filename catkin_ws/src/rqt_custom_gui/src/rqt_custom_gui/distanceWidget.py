@@ -40,6 +40,7 @@ class DistancePlace(QWidget):
         self.img = QImage(self.imName)
         pixmap = QPixmap(QPixmap.fromImage(self.img))
         self.img_label.setPixmap(pixmap)
+        
 
 
     def getPos(self , event):
@@ -55,17 +56,18 @@ class DistancePlace(QWidget):
             self.zoomed = False
             self.setImage()
             # figure out x, y conversion
-            x = new_x / 10 + (self.x - self.scale_x)
-            y = new_y / 10 + (self.y - self.scale_y)
+            x = new_x / 10 + self.xrange[0]
+            y = new_y / 10 + self.yrange[0]
             
             rospy.loginfo(f"Got click: {x}, {y}")
             self.clicks.append([x,y])
             self.clickCount = self.clickCount - 1
 
+            self.drawPoint(x,y)
+
             if self.clickCount == 0:
                 self.shutdown()
-            else:
-                self.drawPoint(x,y)
+            
 
         else:
             self.x = event.pos().x()
@@ -82,17 +84,29 @@ class DistancePlace(QWidget):
         cv2.imwrite(self.imName, im)
         self.setImage()
 
+
     def zoom(self, x, y):
         # get zoomed in version of image:
         self.img_label.setPixmap(QPixmap())
 
-
+        if self.scale_x > x:
+            self.xrange = [0, round(2*self.scale_x)]
+        elif self.scale_x > self.img.width():
+            self.xrange = [round(self.img.width() - 2*self.scale_x), self.im_size[1]]
+        else:
+            self.xrange = [round(x-self.scale_x), round(x+self.scale_x)]
+        if self.scale_y > y:
+            self.yrange = [0, round(2*self.scale_y)]
+        elif self.scale_y > self.img.height():
+            self.yrange = [round(self.img.height() - 2*self.scale_y), self.img.height()]
+        else:
+            self.yrange = [round(y-self.scale_y), round(y+self.scale_y)]
+            
         self.zoomed = True
-        xrange = [round(x-self.scale_x), round(x+self.scale_x)]
-        yrange = [round(y-self.scale_y), round(y+self.scale_y)]
+
         new_im = cv2.imread(self.imName)
         new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
-        new_im = new_im[yrange[0]:yrange[1],xrange[0]:xrange[1]]
+        new_im = new_im[self.yrange[0]:self.yrange[1],self.xrange[0]:self.xrange[1]]
         h, w, ch = new_im.shape
         b = ch * w
 

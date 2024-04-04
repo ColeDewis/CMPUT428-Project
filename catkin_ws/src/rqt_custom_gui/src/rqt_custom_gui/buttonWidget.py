@@ -168,6 +168,8 @@ class MyWidget(QWidget):
         self.ui.DoneDis.setDisabled(False)
         self.ui.DoneDis.setStyleSheet("background-color : none")
         self.notpaused = True
+        self.Distance1 = DistanceDefinition()
+        self.Distance2 = DistanceDefinition()
 
 
     def PtoPClick(self):
@@ -319,7 +321,7 @@ class MyWidget(QWidget):
             b = ch * w
             print(h,w)
             QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
-            if not self.sizeSet:
+            if not self.sizeSet or True:
                 self.sizeSet1 = True
                 if self.sizeSet2:
                     self.setImLayouts(w,h,1)
