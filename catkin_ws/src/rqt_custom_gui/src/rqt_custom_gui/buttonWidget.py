@@ -142,7 +142,8 @@ class MyWidget(QWidget):
         else:
             v = 0.0
         dis = int(self.ui.TaskDistance.text())
-        direct = int(self.ui.TaskDirection.text())
+        direct1 = int(self.ui.TaskDirection1.text())
+        direct2 = int(self.ui.TaskDirection2.text())
 
         self.Distance1.reference_distance_u = u
         self.Distance1.reference_distance_v = v
@@ -151,12 +152,12 @@ class MyWidget(QWidget):
 
         self.Distance1.desired_distance = dis
         self.Distance2.desired_distance = dis
-        self.Distance1.direction = direct
-        self.Distance2.direction = direct
+        self.Distance1.direction = direct1
+        self.Distance2.direction = direct2
 
         self.error_req1.distance_info = self.Distance1
         self.error_req2.distance_info = self.Distance2
-        
+
         self.ui.PlaceTrackers.setDisabled(True)
         self.ui.DoneDis.setDisabled(True)
         self.ui.DoneDis.setStyleSheet("background-color : green")
@@ -319,9 +320,9 @@ class MyWidget(QWidget):
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h, w, ch = frame.shape
             b = ch * w
-            print(h,w)
+            #print(h,w)
             QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
-            if not self.sizeSet or True:
+            if not self.sizeSet:
                 self.sizeSet1 = True
                 if self.sizeSet2:
                     self.setImLayouts(w,h,1)

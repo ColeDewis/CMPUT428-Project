@@ -57,11 +57,10 @@ class TrackerPlace(QWidget):
         rospy.loginfo(f"Got click: {x}, {y}")
         self.clicks.append([x,y])
         self.clickCount = self.clickCount - 1
+        self.drawPoint(x,y)
         if self.clickCount == 0:
             self.shutdown()
             print("shutting down")
-        else:
-            self.drawPoint(x,y)
 
     def drawPoint(self, x, y):
         im = cv2.imread(self.imName)
