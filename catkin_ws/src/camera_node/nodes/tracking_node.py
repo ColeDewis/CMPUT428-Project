@@ -13,10 +13,20 @@ import sympy as sy
 import matplotlib.pyplot as plt
 
 class ErrorInfo:
+    """Class representing an error constraint"""
     LINETOLINE = "lnln"
     POINTTOPOINT = "ptpt"
     POINTTOLINE = "ptln"
     def __init__(self, err_type, formula, idxs, err_idx, fixed_idxs):
+        """Initialize the constraint
+
+        Args:
+            err_type (str): type of constraint
+            formula (sympy formula): sympy formula that defines the constraint
+            idxs (list): list of indices in the tracking that correspond to the points used
+            err_idx (int): index in the error vector that the error value goes into
+            fixed_idxs (list): list of indices that are fixed points
+        """
         self.err_type = err_type
         self.formula = formula
         self.idxs = idxs
@@ -29,6 +39,12 @@ class ErrorInfo:
         self.r = randint(0, 255)
         
     def draw(self, img, points):
+        """Draws the error constraint
+
+        Args:
+            img (array): image array to drawit on (opencv)
+            points (array): points from tracking to draw
+        """
         if self.err_type == ErrorInfo.LINETOLINE:
             p1 = list(map(int, [points[self.idxs[0]][0], points[self.idxs[0]][1]]))
             p2 = list(map(int, [points[self.idxs[1]][0], points[self.idxs[1]][1]]))
@@ -142,6 +158,7 @@ class TrackingNode:
         err_type = data.type
         components = data.components
         distance_definition: DistanceDefinition = data.distance_info
+        dist_valid = len(distance_definition.plane_points) == 4 and distance_definition.desired_distance != 0
         
         if err_type == "ptpt":
             # assume we have 2 points
@@ -153,12 +170,17 @@ class TrackingNode:
             xy1 = sy.Matrix([x1, y1, 1])
             xy2 = sy.Matrix([x2, y2, 1])
             error = xy1.cross(xy2)[:2, :]
-            indexes, err_idx = self.init_trackers(cam_idx, [p1, p2])
             
             # assume one of 2 points is fixed for simplicity for now.
             if components[0].type == "fp":
+                if dist_valid:
+                    p1 = self.update_targets_with_distance(distance_definition, [p1])[0]
+                indexes, err_idx = self.init_trackers(cam_idx, [p1, p2])
                 fixed_idxs = [indexes[0]]
             else:
+                if dist_valid:
+                    p2 = self.update_targets_with_distance(distance_definition, [p2])[0]
+                indexes, err_idx = self.init_trackers(cam_idx, [p1, p2])
                 fixed_idxs = [indexes[1]]
                 
             
@@ -180,12 +202,17 @@ class TrackingNode:
             xy2 = sy.Matrix([x2, y2, 1])
             xy3 = sy.Matrix([x3, y3, 1])
             error = xy1.dot(xy2.cross(xy3))
-            indexes, err_idx = self.init_trackers(cam_idx, [pt, lp1, lp2])
             
             # assume either point or line is fixed for simplicity for now
             if components[0].type == "fp" or components[1].type == "fp":
+                if dist_valid:
+                    pt = self.update_targets_with_distance(distance_definition, [pt])[0]
+                indexes, err_idx = self.init_trackers(cam_idx, [pt, lp1, lp2])
                 fixed_idxs = [indexes[0]]
             else:
+                if dist_valid:
+                    lp1, lp2 = self.update_targets_with_distance(distance_definition, [lp1, lp2])
+                indexes, err_idx = self.init_trackers(cam_idx, [pt, lp1, lp2])
                 fixed_idxs = [indexes[1], indexes[2]]
                 
             
@@ -202,19 +229,34 @@ class TrackingNode:
             xy4 = sy.Matrix([x4, y4, 1])
             l2 = xy3.cross(xy4)
             error = xy1.dot(l2) + xy2.dot(l2)
-            indexes, err_idx = self.init_trackers(cam_idx, [p1, p2, p3, p4])
             
             # assume one line is fixed for simplicity for now
             if components[0].type == "fl":
+                if dist_valid:
+                    p1, p2 = self.update_targets_with_distance(distance_definition, [p1, p2])
+                indexes, err_idx = self.init_trackers(cam_idx, [p1, p2, p3, p4])
                 fixed_idxs = [indexes[0], indexes[1]]
             else:
+                if dist_valid:
+                    p3, p4 = self.update_targets_with_distance(distance_definition, [p3, p4])
+                indexes, err_idx = self.init_trackers(cam_idx, [p1, p2, p3, p4])
                 fixed_idxs = [indexes[2], indexes[3]]
                 
         
         self.error_formulas[cam_idx].append(ErrorInfo(err_type, error, indexes, err_idx, fixed_idxs))
         rospy.loginfo(f"INDEXES: {indexes}")
         
-    def get_reference_plane_info(self, distance_info: DistanceDefinition, static_pts):
+    def update_targets_with_distance(self, distance_info: DistanceDefinition, static_pts):
+        """Calculates and moves the points given by static points to the positions defined by distance_info
+
+        Args:
+            distance_info (DistanceDefinition): object that gives distance definition information
+            static_pts (list): fixed points we want to move
+
+        Returns:
+            list: new points
+        """
+        direction = distance_info.direction
         p1, p2, p3, p4 = distance_info.plane_points
         
         # We make the assumption that the points defined clockwise
@@ -227,54 +269,110 @@ class TrackingNode:
         l1 = np.cross(p1, p2)
         l2 = np.cross(p3, p4)
         v1 = np.cross(l1, l2) 
+        v1 = v1 / v1[2]
         
         # calculate vanishing point 2
         l3 = np.cross(p1, p4)
         l4 = np.cross(p2, p3)
         v2 = np.cross(l3, l4)
+        v2 = v2 / v2[2]
         
+        # vanishing line
         vl = np.cross(v1, v2)
         
+        new_pts = []
+        # for each point, we have to extend it out
         for point in static_pts:
-            a = np.array([point.x, point.y, 1])
-            if distance_info.direction in (1, 3):
-                search_line = np.cross(a, v1)
-                v3_finder = np.cross(p4, a)
+            a1 = np.array([point[0], point[1], 1])
+            if distance_info.direction in (0, 2):
+                # get reference distance in the direction we want
+                
+                # calculate p_t based on parallel assumption
+                D = distance_info.reference_distance_u
+                search_line = np.cross(a1, v1)
+                v3_finder = np.cross(p4, a1)
                 v3 = np.cross(v3_finder, vl)
                 pt_finder = np.cross(p3, v3)
-                
-                
                 p_t = np.cross(search_line, pt_finder)
+                p_t = p_t / p_t[2]
                 
-                # NOW: segment a-p_t is the same as our reference distance p3-p4.
-                # we have formulated our problem now as a search along line search_line, where our points that we use are:
-                # 1) a, 2) p_t, 3) a+epsilon, 4) p*, 5) v1
+                # set the proper vanishing point
+                v = v1
                 
-            elif distance_info.direction in (2, 4): 
-                search_line = np.cross(a, v2)
-                v3_finder = np.cross(p4, a)
+            elif distance_info.direction in (1, 3):
+                # get deference distance in the direction we want 
+                D = distance_info.reference_distance_v
+                
+                # calculate p_t based on parallel assumption
+                search_line = np.cross(a1, v2)
+                v3_finder = np.cross(p4, a1)
                 v3 = np.cross(v3_finder, vl)
                 pt_finder = np.cross(p1, v3)
-                
                 p_t = np.cross(search_line, pt_finder)
+                p_t = p_t / p_t[2]
                 
-                 # NOW: segment a-p_t is the same as our reference distance p1-p4.
-                # we have formulated our problem now as a search along line search_line, where our points that we use are:
-                # 1) a, 2) p_t, 3) a+epsilon, 4) p*, 5) v2
+                # set the proper vanishing point
+                v = v2
                 
-        
-        
-    def get_distance_offset_points(self, distance_info: DistanceDefinition, fixed_pts):
-        direction = distance_info.direction
-        
-        if direction == 0: # positive x
-            pass
-        elif direction == 1: # positive y
-            pass
-        elif direction == 2: # negative x
-            pass
-        elif direction == 3: # negative y
-            pass
+            # NOW: segment a-p_t is the same as our reference distance p3-p4.
+            # we have formulated our problem now as a search along line search_line, where our points that we use are:
+            # 1) a, 2) p_t, 3) a+epsilon, 4) p*, 5) v1/v2
+            # a - reference point for constraint
+            # p_t =known
+            # a + epsiolon known
+            # p* we solve for
+            # v1/v2 is vanishing point of parallel defined lines
+            epsilon = 0.01 # epsilon is a distance along our line we define a point away from a1, so we have a 5th point for our math. 
+            # TODO: we may not need epsilon, do some testing?
+            
+            # determine cr1
+            d_a1_pt = np.linalg.norm(a1[:2] - p_t[:2])
+            d_aeps_v1 = np.linalg.norm(a1[:2] - v[:2]) + epsilon # increase distance by epsilon to avoid zeros
+            d_pt_aeps = np.linalg.norm(a1[:2] - p_t[:2]) + epsilon
+            d_a1_v1 = np.linalg.norm(a1[:2] - v[:2])
+            cr1 = (d_a1_pt * d_aeps_v1) / (d_pt_aeps * d_a1_v1)
+            
+            # determine distances related to cr2
+            d_a1_s2 = np.linalg.norm(a1[:2] - p_t[:2])
+            d_pt_v1 = np.linalg.norm(p_t[:2] - v[:2])
+            
+            d_star = distance_info.desired_distance
+            
+            rospy.loginfo(f"{D} - {cr1} - {d_pt_v1}")
+            D_star = (d_star * d_a1_s2) / ((D / cr1) * d_pt_v1)
+            p = (d_a1_v1 * D_star) / (D_star + 1)
+            
+            # get the unit vector between the point "a" and point "v"
+            unit_vec = [(v[0] - a1[0])/d_aeps_v1, (v[1] - a1[1])/d_aeps_v1]
+            
+            # depending on the direction, we now need to move along the vector.
+            # however, the direction depends on a) what direction we want and b) which direction the line towards
+            # the vanishing point actually leads us
+            if direction == 0: # positive x
+                if v1[0] > a1[0]: # vanishing point goes right, follow it
+                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+                else: # vanishing point goes left, we want positive, so we go negative.
+                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+            elif direction == 1: # positive y
+                if v2[1] > a1[1]: # vanishing point down, don't follow
+                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+                else: # vanishing point up, follow
+                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+            elif direction == 2: # negative x
+                if v1[0] > a1[0]: # vanishing point left, want positive, so go right
+                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+                else: # vanishing point goes left, we follow it
+                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+            elif direction == 3: # negative y
+                if v2[1] > a1[1]: # vanishing point down, follow
+                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+                else: # vanishing point up, don't follow
+                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+            
+            new_pts.append(p_img)
+            rospy.loginfo(f"OLD: {point}, NEW: {p_img}")
+            
+        return np.asarray(new_pts)
         
     def update_trackers(self, data: Image):
         """Update trackers with a Lukas Kanade update given the new frame
@@ -317,7 +415,7 @@ class TrackingNode:
                 
             formula.draw(marked_up_image, p1)
                 
-            rospy.loginfo(f"{err}")
+            # rospy.loginfo(f"{err}")
             self.error[camera_idx][formula.err_idx] = err
                 
         self.last_points[camera_idx] = p1.copy()

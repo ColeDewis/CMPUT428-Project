@@ -70,19 +70,19 @@ if __name__ == "__main__":
     
     d_star = 2
     D_star = (d_star * d_aeps_s2) / ((D / cr1) * d_pt_v1)
-    p = (d_a2_v1 * D_star) / (D_star + 1)
+    p = (d_a1_v1 * D_star) / (D_star + 1)
     
     # get the unit vector between the point "a" and point "v"
-    unit_vec = [(v1[0] - a2[0])/d_a2_v1, (v1[1] - a2[1])/d_a2_v1]
+    unit_vec = [(v1[0] - a1[0])/d_a1_v1, (v1[1] - a1[1])/d_a1_v1]
     print("P:", p)
     print("Unit vec:", unit_vec)
-    p_img = [a2[0] + unit_vec[0] * p, a2[1] + unit_vec[1] * p]
+    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
     print("P_img", p_img)
     
     plt.close()
     img = cv2.line(img, (int(p2[0]), int(p2[1])), (int(v1[0]), int(v1[1])), color=(0, 0, 255), thickness=5)
     img = cv2.line(img, (int(p1[0]), int(p1[1])), (int(v1[0]), int(v1[1])), color=(0, 0, 255), thickness=5)
-    img = cv2.line(img, (int(a2[0]), int(a2[1])), (int(v1[0]), int(v1[1])), color=(255, 0, 0), thickness=5)
+    img = cv2.line(img, (int(a1[0]), int(a1[1])), (int(v1[0]), int(v1[1])), color=(255, 0, 0), thickness=5)
     img = cv2.circle(img, (int(p_img[0]), int(p_img[1])), 0, color=(0, 255, 0), thickness=10)
     cv2.imshow("your point:", img)
     cv2.waitKey()

@@ -27,14 +27,14 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        self.camIndices = [0,1] 
-        '''self.camIndices = []
+        # self.camIndices = [0,1] 
+        self.camIndices = []
         cam_idx_sub = rospy.Subscriber("/cam_idx", Int32, self.idx_cb)
         while len(self.camIndices) < 2:
             continue
         cam_idx_sub.unregister()
         
-        rospy.loginfo(f"Cam Indices: {self.camIndices}")'''
+        rospy.loginfo(f"Cam Indices: {self.camIndices}")
 
 
         self.ui.PtoPButton.clicked.connect(self.PtoPClick)
@@ -72,8 +72,9 @@ class MyWidget(QWidget):
         self.initDisable(True)
         self.goDisable(True)
 
-        self.imSub1 = rospy.Subscriber("img_pub_node", Image, self.updateIm1)
-        self.imSub2 = rospy.Subscriber("img_pub_node", Image, self.updateIm2)
+        self.imSub1 = rospy.Subscriber("/cameras/cam%s" % (self.camIndices[0]), Image, self.updateIm1)
+        self.imSub2 = rospy.Subscriber("/cameras/cam%s" % (self.camIndices[1]), Image, self.updateIm2)
+
         self.sizeSet = False
         self.sizeSet1 = False
         self.sizeSet2 = False
@@ -113,11 +114,11 @@ class MyWidget(QWidget):
         self.distance1inprog = True
         self.distance2inprog = True
 
-        #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-        #msg 2= rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+        msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+        msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-        msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-        msg2 = rospy.wait_for_message("img_pub_node", Image) 
+        # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+        # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
         cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
         cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
@@ -256,8 +257,23 @@ class MyWidget(QWidget):
     def InitButtonClick(self):
         """Init tracker Button click listener. """
         rospy.loginfo("Sending error info stuff")
+        
+        # get distance and direction for the task
+        dis = int(self.ui.TaskDistance.text())
+        direct1 = int(self.ui.TaskDirection1.text())
+        direct2 = int(self.ui.TaskDirection2.text())
+        self.Distance1.desired_distance = dis
+        self.Distance1.direction = direct1
+        self.Distance2.desired_distance = dis
+        self.Distance2.direction = direct2
+        
+        # publish error requests
+        self.error_req1.distance_info = self.Distance1
+        self.error_req2.distance_info = self.Distance2
         self.error_req_pub.publish(self.error_req1)
         self.error_req_pub.publish(self.error_req2)
+        
+        # update GUI
         self.goDisable(False)
         self.ui.InitButton.setStyleSheet("background-color : green")
         self.initDisable(True)
@@ -294,12 +310,11 @@ class MyWidget(QWidget):
             self.trackers_placed += 1
             self.notpaused = False
             
+            msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+            msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-            #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-            #msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
-
-            msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-            msg2 = rospy.wait_for_message("img_pub_node", Image) 
+            # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
             cv2_img = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
             cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
@@ -320,7 +335,6 @@ class MyWidget(QWidget):
             #frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             h, w, ch = frame.shape
             b = ch * w
-            #print(h,w)
             QIm = QImage(frame.data, w, h, b, QImage.Format_RGB888)
             if not self.sizeSet:
                 self.sizeSet1 = True
@@ -335,7 +349,7 @@ class MyWidget(QWidget):
             self.ui.im_1.setPixmap(pixmap)
             
 
-        elif self.pointsplaced1-len(self.error_req1.components)==-1and self.pointsplaced2-len(self.error_req2.components)==-1:
+        elif self.pointsplaced1-len(self.error_req1.components)==-1 and self.pointsplaced2-len(self.error_req2.components)==-1:
             self.pointsplaced2 = len(self.error_req2.components)
             self.pointsplaced1 = len(self.error_req1.components)
             self.TrackerType = None

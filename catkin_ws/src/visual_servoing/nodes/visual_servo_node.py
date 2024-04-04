@@ -217,12 +217,14 @@ class VisualServoing:
             
             # calculate new stepsize, and move.
             step = (initial_stepsize / (1 / initial_error)) * (1 / np.linalg.norm(self.latest_error))
-            step = min(step, 0.3)
+            step = min(step, 0.2)
             rospy.loginfo(f"STEP: {step}")
             delta_move = self.get_move(step)[0]
             rospy.loginfo(f"DELTA MOVE: {delta_move}")
+            rospy.loginfo(f"LAST ERROR: {self.latest_error}")
             
             self.move(delta_move)
+            rospy.sleep(0.5)
             
             if np.linalg.norm(self.latest_error) < self.threshold:
                 rospy.loginfo(f"Servoing converged after {i} iterations")
