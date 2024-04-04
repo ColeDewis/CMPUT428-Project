@@ -279,6 +279,10 @@ class MyWidget(QWidget):
         self.initDisable(True)
         self.ResetButtonClick()
         self.goDisable(False)
+        self.imSub1.unregister()
+        self.imSub1 = rospy.Subscriber("/cameras/cam%s/tracked_points" % (self.camIndices[0]), Image, self.updateIm1)
+        self.imSub2.unregister()
+        self.imSub2 = rospy.Subscriber("/cameras/cam%s/tracked_points" % (self.camIndices[1]), Image, self.updateIm2)
 
     def ResetButtonClick(self):
         """Reset any progress."""
