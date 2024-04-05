@@ -39,6 +39,11 @@ class TrackerPlace(QWidget):
         self.img_label.mousePressEvent = self.getPos
         self.clicks = []
 
+        self.zoomed = False
+        self.scale_x = self.img_label.width()/20
+        self.scale_y = self.img_label.height()/20
+
+
 
     def setImage(self): 
         self.img = QImage(self.imName)
@@ -52,24 +57,83 @@ class TrackerPlace(QWidget):
         Args:
             event: mousePressEvent
         """
-        print("!!!")
 
-        x = event.pos().x()
-        y = event.pos().y()
-        rospy.loginfo(f"Got click: {x}, {y}")
-        self.clicks.append([x,y])
-        self.clickCount = self.clickCount - 1
-        self.drawPoint(x,y)
-        if self.clickCount == 0:
-            self.shutdown()
-            print("shutting down")
+        if self.track_req.type == "tp" or self.track_req.type == "tl":
+            x = event.pos().x()
+            y = event.pos().y()
+            rospy.loginfo(f"Got click: {x}, {y}")
+            self.clicks.append([x,y])
+            self.clickCount = self.clickCount - 1
+            self.drawPoint(x,y)
+            if self.clickCount == 0:
+                self.shutdown()
+                print("shutting down")
+        else:
+            if self.zoomed:
+                new_x = event.pos().x()
+                new_y = event.pos().y()
+
+                self.zoomed = False
+                self.setImage()
+                # figure out x, y conversion
+                x = new_x / 10 + self.xrange[0]
+                y = new_y / 10 + self.yrange[0]
+                
+                rospy.loginfo(f"Got click: {x}, {y}")
+                self.clicks.append([x,y])
+                self.clickCount = self.clickCount - 1
+
+                self.drawPoint(x,y)
+
+                if self.clickCount == 0:
+                    self.shutdown()
+                
+
+            else:
+                self.x = event.pos().x()
+                self.y = event.pos().y()
+                
+                self.zoomed = True
+                self.zoom(self.x,self.y)
+
 
     def drawPoint(self, x, y):
         im = cv2.imread(self.imName)
-        im = cv2.circle(im, (x,y), 3, (255,0,0), 5) 
+        im = cv2.circle(im, (round(x),round(y)), 3, (255,0,0), 5) 
         cv2.imwrite(self.imName, im)
         self.setImage()
 
+
+    def zoom(self, x, y):
+        # get zoomed in version of image:
+        self.img_label.setPixmap(QPixmap())
+
+        if self.scale_x > x:
+            self.xrange = [0, round(2*self.scale_x)]
+        elif self.scale_x > self.img.width():
+            self.xrange = [round(self.img.width() - 2*self.scale_x), self.im_size[1]]
+        else:
+            self.xrange = [round(x-self.scale_x), round(x+self.scale_x)]
+        if self.scale_y > y:
+            self.yrange = [0, round(2*self.scale_y)]
+        elif self.scale_y > self.img.height():
+            self.yrange = [round(self.img.height() - 2*self.scale_y), self.img.height()]
+        else:
+            self.yrange = [round(y-self.scale_y), round(y+self.scale_y)]
+            
+        self.zoomed = True
+
+        new_im = cv2.imread(self.imName)
+        new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
+        new_im = new_im[self.yrange[0]:self.yrange[1],self.xrange[0]:self.xrange[1]]
+        h, w, ch = new_im.shape
+        b = ch * w
+
+        QIm = QImage(new_im.data.tobytes(), w, h, b, QImage.Format_RGB888)
+        pixmap = QPixmap(QPixmap.fromImage(QIm))
+        self.img_label.setPixmap(pixmap.scaled(self.img_label.width(), self.img_label.height()))
+
+        return x,y
         
     def shutdown(self):
         """Shuts down the click window once we have enough clicks, and sends info to the tracking node."""
