@@ -156,7 +156,7 @@ class VisualServoing:
     def update_jacobian(self):
         """Generate an initial jacobian, or update to reset it by doing basis movements."""
         self.jacobian = np.zeros((self.latest_error.size, self.num_joints))
-        delta = 0.05
+        delta = 0.025
         
         # loop for each joint
         move = [0.0, 0.0, 0.0, 0.0]
@@ -217,7 +217,7 @@ class VisualServoing:
             
             # calculate new stepsize, and move.
             step = (initial_stepsize / (1 / initial_error)) * (1 / np.linalg.norm(self.latest_error))
-            step = min(step, 0.2)
+            step = min(step, 0.1)
             rospy.loginfo(f"STEP: {step}")
             delta_move = self.get_move(step)[0]
             rospy.loginfo(f"DELTA MOVE: {delta_move}")
@@ -236,7 +236,7 @@ class VisualServoing:
 def main(args):
     rospy.sleep(3) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
     rospy.loginfo("Starting vs node...")
-    node = VisualServoing(learn_rate=0.2, step_size=0.1, max_it=100, threshold=5, num_joints=4)
+    node = VisualServoing(learn_rate=0.2, step_size=0.05, max_it=100, threshold=5, num_joints=4)
     
     try:
         rospy.spin()

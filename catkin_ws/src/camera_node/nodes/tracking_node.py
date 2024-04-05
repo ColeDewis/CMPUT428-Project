@@ -17,7 +17,7 @@ class ErrorInfo:
     LINETOLINE = "lnln"
     POINTTOPOINT = "ptpt"
     POINTTOLINE = "ptln"
-    def __init__(self, err_type, formula, idxs, err_idx, fixed_idxs):
+    def __init__(self, err_type, formula, idxs, err_idx, fixed_idxs, dist_ref_pts = None):
         """Initialize the constraint
 
         Args:
@@ -32,6 +32,7 @@ class ErrorInfo:
         self.idxs = idxs
         self.err_idx = err_idx
         self.fixed_idxs = fixed_idxs
+        self.dist_ref_pts = dist_ref_pts
         
         # random color
         self.b = randint(0, 255)
@@ -68,6 +69,12 @@ class ErrorInfo:
             
             cv2.circle(img, p1, 0, color=(self.b, self.g, self.r), thickness=10)
             cv2.line(img, p2, p3, color=(self.b, self.g, self.r), thickness=10)
+            
+        if self.dist_ref_pts is not None:
+            for pt in self.dist_ref_pts:
+                rospy.loginfo(f"POINT {pt}")
+                cv2.circle(img, (int(pt[0]), int(pt[1])), 5, (255, 0, 0), 3)
+                
 
 class TrackingNode:
     """Basic Node that runs a camera on a given camera index and publishes to ros."""
@@ -155,6 +162,10 @@ class TrackingNode:
         """
         rospy.loginfo("Error Request Init")
         cam_idx = data.cam_idx
+        
+        # TEMP: ignore certain indexes
+        # if cam_idx != 0: return
+        
         err_type = data.type
         components = data.components
         distance_definition: DistanceDefinition = data.distance_info
@@ -170,15 +181,18 @@ class TrackingNode:
             xy1 = sy.Matrix([x1, y1, 1])
             xy2 = sy.Matrix([x2, y2, 1])
             error = xy1.cross(xy2)[:2, :]
+            dist_ref_pts = None
             
             # assume one of 2 points is fixed for simplicity for now.
             if components[0].type == "fp":
                 if dist_valid:
+                    dist_ref_pts = [np.copy(p1)]
                     p1 = self.update_targets_with_distance(distance_definition, [p1])[0]
                 indexes, err_idx = self.init_trackers(cam_idx, [p1, p2])
                 fixed_idxs = [indexes[0]]
             else:
                 if dist_valid:
+                    dist_ref_pts = [np.copy(p2)]
                     p2 = self.update_targets_with_distance(distance_definition, [p2])[0]
                 indexes, err_idx = self.init_trackers(cam_idx, [p1, p2])
                 fixed_idxs = [indexes[1]]
@@ -206,11 +220,13 @@ class TrackingNode:
             # assume either point or line is fixed for simplicity for now
             if components[0].type == "fp" or components[1].type == "fp":
                 if dist_valid:
+                    dist_ref_pts = [np.copy(pt)]
                     pt = self.update_targets_with_distance(distance_definition, [pt])[0]
                 indexes, err_idx = self.init_trackers(cam_idx, [pt, lp1, lp2])
                 fixed_idxs = [indexes[0]]
             else:
                 if dist_valid:
+                    dist_ref_pts = [np.copy(lp1), np.copy(lp2)]
                     lp1, lp2 = self.update_targets_with_distance(distance_definition, [lp1, lp2])
                 indexes, err_idx = self.init_trackers(cam_idx, [pt, lp1, lp2])
                 fixed_idxs = [indexes[1], indexes[2]]
@@ -233,17 +249,19 @@ class TrackingNode:
             # assume one line is fixed for simplicity for now
             if components[0].type == "fl":
                 if dist_valid:
+                    dist_ref_pts = [np.copy(p1), np.copy(p2)]
                     p1, p2 = self.update_targets_with_distance(distance_definition, [p1, p2])
                 indexes, err_idx = self.init_trackers(cam_idx, [p1, p2, p3, p4])
                 fixed_idxs = [indexes[0], indexes[1]]
             else:
                 if dist_valid:
+                    dist_ref_pts = [np.copy(p3), np.copy(p4)]
                     p3, p4 = self.update_targets_with_distance(distance_definition, [p3, p4])
                 indexes, err_idx = self.init_trackers(cam_idx, [p1, p2, p3, p4])
                 fixed_idxs = [indexes[2], indexes[3]]
                 
         
-        self.error_formulas[cam_idx].append(ErrorInfo(err_type, error, indexes, err_idx, fixed_idxs))
+        self.error_formulas[cam_idx].append(ErrorInfo(err_type, error, indexes, err_idx, fixed_idxs, dist_ref_pts))
         rospy.loginfo(f"INDEXES: {indexes}")
         
     def update_targets_with_distance(self, distance_info: DistanceDefinition, static_pts):

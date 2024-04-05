@@ -142,7 +142,7 @@ class MyWidget(QWidget):
             v = float(self.ui.Dim2Val.text())
         else:
             v = 0.0
-        dis = int(self.ui.TaskDistance.text())
+        dis = float(self.ui.TaskDistance.text())
         direct1 = int(self.ui.TaskDirection1.text())
         direct2 = int(self.ui.TaskDirection2.text())
 
@@ -259,7 +259,7 @@ class MyWidget(QWidget):
         rospy.loginfo("Sending error info stuff")
         
         # get distance and direction for the task
-        dis = int(self.ui.TaskDistance.text())
+        dis = float(self.ui.TaskDistance.text())
         direct1 = int(self.ui.TaskDirection1.text())
         direct2 = int(self.ui.TaskDirection2.text())
         self.Distance1.desired_distance = dis
