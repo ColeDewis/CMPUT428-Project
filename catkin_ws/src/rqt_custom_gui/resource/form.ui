@@ -19,7 +19,7 @@
      <x>620</x>
      <y>10</y>
      <width>431</width>
-     <height>161</height>
+     <height>191</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -115,6 +115,13 @@
        <widget class="QPushButton" name="ResetButton">
         <property name="text">
          <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="CamLimiter">
+        <property name="text">
+         <string>Camera 1 Only</string>
         </property>
        </widget>
       </item>
