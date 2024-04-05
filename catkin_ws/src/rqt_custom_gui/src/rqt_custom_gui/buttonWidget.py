@@ -27,7 +27,7 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        # self.camIndices = [0,1] 
+        self.camIndices = [0,1] 
         self.camIndices = []
         cam_idx_sub = rospy.Subscriber("/cam_idx", Int32, self.idx_cb)
         while len(self.camIndices) < 2:
@@ -151,13 +151,13 @@ class MyWidget(QWidget):
         self.Distance2.reference_distance_u = u
         self.Distance2.reference_distance_v = v
 
-        self.Distance1.desired_distance = dis
+        '''self.Distance1.desired_distance = dis
         self.Distance2.desired_distance = dis
         self.Distance1.direction = direct1
         self.Distance2.direction = direct2
 
         self.error_req1.distance_info = self.Distance1
-        self.error_req2.distance_info = self.Distance2
+        self.error_req2.distance_info = self.Distance2'''
 
         self.ui.PlaceTrackers.setDisabled(True)
         self.ui.DoneDis.setDisabled(True)

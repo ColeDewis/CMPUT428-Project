@@ -202,7 +202,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="im_layouts">
+  <widget class="QWidget" name="horizontalLayoutWidget_2">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -211,7 +211,7 @@
      <height>381</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="horizontalLayout_4">
+   <layout class="QHBoxLayout" name="im_layouts">
     <item>
      <widget class="QLabel" name="im_1">
       <property name="text">
@@ -296,7 +296,11 @@
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="TaskDistance"/>
+         <widget class="QLineEdit" name="TaskDistance">
+          <property name="text">
+           <string>0</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>
