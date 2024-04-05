@@ -202,7 +202,7 @@
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="horizontalLayoutWidget_2">
+  <widget class="QWidget" name="im_layouts">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -211,7 +211,7 @@
      <height>381</height>
     </rect>
    </property>
-   <layout class="QHBoxLayout" name="im_layouts">
+   <layout class="QHBoxLayout" name="horizontalLayout_4">
     <item>
      <widget class="QLabel" name="im_1">
       <property name="text">

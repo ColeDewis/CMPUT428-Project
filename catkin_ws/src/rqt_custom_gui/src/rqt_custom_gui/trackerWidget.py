@@ -52,6 +52,8 @@ class TrackerPlace(QWidget):
         Args:
             event: mousePressEvent
         """
+        print("!!!")
+
         x = event.pos().x()
         y = event.pos().y()
         rospy.loginfo(f"Got click: {x}, {y}")
