@@ -22,12 +22,12 @@ class ImgPubNode:
         self.bridge = cv_bridge.CvBridge()
 
         
-        for i in range(10, 24):
+        '''for i in range(10, 24):
             base_img = cv2.imread(f"{path}/img/ruler_img.jpg") # CHANGE IMAGE NAME HERE!
             base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
             image = self.bridge.cv2_to_imgmsg(base_img, encoding="rgb8")
             self.base_imgs.append(image)
-
+'''
         for i in range(0, 10):
             base_img = cv2.imread(f"{path}/img/banana/banana-000"+str(i)+".jpg") # CHANGE IMAGE NAME HERE!
             base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
@@ -41,7 +41,7 @@ class ImgPubNode:
             self.base_imgs.append(image)
         
 
-        for i in range(0, 10):
+        '''for i in range(0, 10):
             base_img = cv2.imread(f"{path}/img/gnome/gnome-000"+str(i)+".jpg") # CHANGE IMAGE NAME HERE!
             base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
             image = self.bridge.cv2_to_imgmsg(base_img, encoding="rgb8")
@@ -51,8 +51,7 @@ class ImgPubNode:
             base_img = cv2.imread(f"{path}/img/gnome/gnome-00"+str(i)+".jpg") # CHANGE IMAGE NAME HERE!
             base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
             image = self.bridge.cv2_to_imgmsg(base_img, encoding="rgb8")
-            self.base_imgs.append(image)
-
+            self.base_imgs.append(image)'''
         
         # --- Publishers ---
         self.image_pub = rospy.Publisher("img_pub_node", Image, queue_size=10)

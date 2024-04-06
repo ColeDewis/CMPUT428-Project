@@ -15,7 +15,7 @@ from custom_msgs.msg import TrackRequest, ErrorDefinition, Point2D
 import cv2
 
 class TrackerPlace(QWidget):
-    def __init__(self, trackerType, imName, error_req,qLabel):
+    def __init__(self, trackerType, im, error_req,qLabel):
         super(TrackerPlace, self).__init__()
         self.error_req = error_req
         self.track_req = TrackRequest()
@@ -32,11 +32,10 @@ class TrackerPlace(QWidget):
         else:
             raise TypeError("invalid tracker type")
         
-        self.imName = imName
         self.img_label = qLabel
-        self.img_label.setPixmap(QPixmap())
+        self.im = im
         self.setImage()
-        self.img_label.mousePressEvent = self.getPos
+        self.img_label.mouseReleaseEvent = self.getPos
         self.clicks = []
 
         self.zoomed = False
@@ -44,10 +43,11 @@ class TrackerPlace(QWidget):
         self.scale_y = self.img_label.height()/20
 
 
-
     def setImage(self): 
-        self.img = QImage(self.imName)
-        pixmap = QPixmap(QPixmap.fromImage(self.img))
+        h, w, ch = self.im.shape
+        b = ch*w
+        QIm = QImage(self.im.data.tobytes(), w, h, b,QImage.Format_RGB888)
+        pixmap = QPixmap(QPixmap.fromImage(QIm))
         self.img_label.setPixmap(pixmap)
 
 
@@ -98,9 +98,7 @@ class TrackerPlace(QWidget):
 
 
     def drawPoint(self, x, y):
-        im = cv2.imread(self.imName)
-        im = cv2.circle(im, (round(x),round(y)), 3, (255,0,0), 5) 
-        cv2.imwrite(self.imName, im)
+        self.im = cv2.circle(self.im, (round(x),round(y)), 3, (255,0,0), 5) 
         self.setImage()
 
 
@@ -110,21 +108,22 @@ class TrackerPlace(QWidget):
 
         if self.scale_x > x:
             self.xrange = [0, round(2*self.scale_x)]
-        elif self.scale_x > self.img.width():
-            self.xrange = [round(self.img.width() - 2*self.scale_x), self.im_size[1]]
+        elif self.scale_x > len(self.im):
+            self.xrange = [round(len(self.im) - 2*self.scale_x), self.im_size[1]]
         else:
             self.xrange = [round(x-self.scale_x), round(x+self.scale_x)]
         if self.scale_y > y:
             self.yrange = [0, round(2*self.scale_y)]
-        elif self.scale_y > self.img.height():
-            self.yrange = [round(self.img.height() - 2*self.scale_y), self.img.height()]
+        elif self.scale_y > len(self.im[0]):
+            self.yrange = [round(len(self.im[0]) - 2*self.scale_y), self.img.height()]
         else:
             self.yrange = [round(y-self.scale_y), round(y+self.scale_y)]
             
         self.zoomed = True
 
-        new_im = cv2.imread(self.imName)
-        new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
+        #new_im = cv2.imread(self.imName)
+        #new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
+        new_im = self.im.copy()
         new_im = new_im[self.yrange[0]:self.yrange[1],self.xrange[0]:self.xrange[1]]
         h, w, ch = new_im.shape
         b = ch * w
@@ -139,8 +138,8 @@ class TrackerPlace(QWidget):
         """Shuts down the click window once we have enough clicks, and sends info to the tracking node."""
         for pt in self.clicks:
             pt2d = Point2D()
-            pt2d.x = pt[0]
-            pt2d.y = pt[1]
+            pt2d.x = p[0]
+            pt2d.y = p[1]
             self.track_req.points.append(pt2d)
         self.error_req.components.append(self.track_req)
         self.img_label.mousePressEvent = None

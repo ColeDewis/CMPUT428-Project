@@ -17,18 +17,18 @@ import cv2
 from time import sleep
 
 class DistancePlace(QWidget):
-    def __init__(self, imName, distanceDef,qLabel):
+    def __init__(self, im, distanceDef,qLabel):
         super(DistancePlace, self).__init__()
         self.Distance = distanceDef
         self.Distance.plane_points = []
         self.clickCount = 4
-        
-        self.imName = imName
+    
         self.img_label = qLabel
         self.img_label.setPixmap(QPixmap())
 
+        self.im = im
         self.setImage()
-        self.img_label.mousePressEvent = self.getPos
+        self.img_label.mouseReleaseEvent = self.getPos
         self.clicks = []
 
         self.zoomed = False
@@ -37,9 +37,11 @@ class DistancePlace(QWidget):
 
 
     def setImage(self): 
-        self.img = QImage(self.imName)
-        pixmap = QPixmap(QPixmap.fromImage(self.img))
-        self.img_label.setPixmap(pixmap)
+        h, w, ch = self.im.shape
+        b = ch*w
+        QIm = QImage(self.im.data.tobytes(), w, h, b,QImage.Format_RGB888)
+        pixmap = QPixmap(QPixmap.fromImage(QIm))
+        self.img_label.setPixmap(pixmap.scaled(self.img_label.width(), self.img_label.height()))
         
 
 
@@ -79,9 +81,7 @@ class DistancePlace(QWidget):
             
 
     def drawPoint(self, x, y):
-        im = cv2.imread(self.imName)
-        im = cv2.circle(im, (round(x),round(y)), 2, (255,0,0), 3) 
-        cv2.imwrite(self.imName, im)
+        self.im = cv2.circle(self.im, (round(x),round(y)), 3, (255,0,0), 5) 
         self.setImage()
 
 
@@ -91,21 +91,20 @@ class DistancePlace(QWidget):
 
         if self.scale_x > x:
             self.xrange = [0, round(2*self.scale_x)]
-        elif self.scale_x > self.img.width():
-            self.xrange = [round(self.img.width() - 2*self.scale_x), self.im_size[1]]
+        elif self.scale_x > len(self.im):
+            self.xrange = [round(len(self.im) - 2*self.scale_x), self.im_size[1]]
         else:
             self.xrange = [round(x-self.scale_x), round(x+self.scale_x)]
         if self.scale_y > y:
             self.yrange = [0, round(2*self.scale_y)]
-        elif self.scale_y > self.img.height():
-            self.yrange = [round(self.img.height() - 2*self.scale_y), self.img.height()]
+        elif self.scale_y > len(self.im[0]):
+            self.yrange = [round(len(self.im[0]) - 2*self.scale_y), self.img.height()]
         else:
             self.yrange = [round(y-self.scale_y), round(y+self.scale_y)]
             
         self.zoomed = True
 
-        new_im = cv2.imread(self.imName)
-        new_im = cv2.cvtColor(new_im, cv2.COLOR_BGR2RGB)
+        new_im = self.im.copy()
         new_im = new_im[self.yrange[0]:self.yrange[1],self.xrange[0]:self.xrange[1]]
         h, w, ch = new_im.shape
         b = ch * w
@@ -126,3 +125,4 @@ class DistancePlace(QWidget):
 
         self.img_label.mousePressEvent = None
         
+    
