@@ -17,6 +17,7 @@ import cv2
 class TrackerPlace(QWidget):
     def __init__(self, trackerType, im, error_req,qLabel):
         super(TrackerPlace, self).__init__()
+        print("!!!")
         self.error_req = error_req
         self.track_req = TrackRequest()
         self.track_req.points = []
@@ -138,8 +139,9 @@ class TrackerPlace(QWidget):
         """Shuts down the click window once we have enough clicks, and sends info to the tracking node."""
         for pt in self.clicks:
             pt2d = Point2D()
-            pt2d.x = p[0]
-            pt2d.y = p[1]
+            pt2d.x = pt[0]
+            pt2d.y = pt[1]
             self.track_req.points.append(pt2d)
         self.error_req.components.append(self.track_req)
-        self.img_label.mousePressEvent = None
+        self.img_label.mouseReleaseEvent = None
+        

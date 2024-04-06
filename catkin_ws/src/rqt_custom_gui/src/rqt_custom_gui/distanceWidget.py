@@ -123,6 +123,6 @@ class DistancePlace(QWidget):
             pt2d.y = pt[1]
             self.Distance.plane_points.append(pt2d)
 
-        self.img_label.mousePressEvent = None
+        self.img_label.mouseReleaseEvent = None
         
     
