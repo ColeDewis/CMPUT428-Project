@@ -198,13 +198,6 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="DoneDis">
-        <property name="text">
-         <string>Done</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
    </layout>

@@ -50,12 +50,11 @@ class MyWidget(QWidget):
         self.ui.GoButton.clicked.connect(self.GoButtonClick)
 
         self.ui.PlaceTrackers.clicked.connect(self.PlaceDistanceClick)
-        self.ui.DoneDis.clicked.connect(self.DistanceDone)
         self.ui.ResetDis.clicked.connect(self.DistanceReset)
 
         self.buttons = [self.ui.PtoPButton,self.ui.PtoLButton,self.ui.LtoLButton,self.ui.FPButton,self.ui.FLButton,
                         self.ui.TPButton,self.ui.TLButton,self.ui.ResetButton,self.ui.InitButton,self.ui.GoButton,
-                        self.ui.PlaceTrackers, self.ui.DoneDis, self.ui.ResetDis]
+                        self.ui.PlaceTrackers, self.ui.ResetDis]
 
         self.bridge = CvBridge()
         self.error_req1 = ErrorDefinition()
@@ -137,47 +136,12 @@ class MyWidget(QWidget):
         cv2_img1 = cv2.cvtColor(cv2_img1, cv2.COLOR_BGR2RGB)
         #cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im1.jpg', cv2_img)
         DistancePlace(cv2_img1, self.Distance1,self.ui.im_1)
-        
+    
         cv2_img2 = self.bridge.imgmsg_to_cv2(msg2, "bgr8")
         cv2_img2 = cv2.cvtColor(cv2_img2, cv2.COLOR_BGR2RGB)
         #cv2.imwrite('catkin_ws/src/rqt_custom_gui/resource/im2.jpg', cv2_img)
         DistancePlace(cv2_img2, self.Distance2, self.ui.im_2 )
         
-
-    def DistanceDone(self):
-        '''int8 desired_distance
-        int8 direction  # 0, 1, 2, 3 ? to define direction relative to the point
-        float64 reference_distance_u  # real world dist between the rectangle side defined by p1-p2
-        float64 reference_distance_v  # real world dist between the rectangle side defined by p2-p3'''
-        if self.ui.Dim1Val.text():
-            u = float(self.ui.Dim1Val.text())
-        else:
-            u = 0.0
-        if self.ui.Dim2Val.text():
-            v = float(self.ui.Dim2Val.text())
-        else:
-            v = 0.0
-        dis = int(self.ui.TaskDistance.text())
-        direct1 = int(self.ui.TaskDirection1.text())
-        direct2 = int(self.ui.TaskDirection2.text())
-
-        self.Distance1.reference_distance_u = u
-        self.Distance1.reference_distance_v = v
-        self.Distance2.reference_distance_u = u
-        self.Distance2.reference_distance_v = v
-
-        '''self.Distance1.desired_distance = dis
-        self.Distance2.desired_distance = dis
-        self.Distance1.direction = direct1
-        self.Distance2.direction = direct2
-
-        self.error_req1.distance_info = self.Distance1
-        self.error_req2.distance_info = self.Distance2'''
-
-        self.ui.PlaceTrackers.setDisabled(True)
-        self.ui.DoneDis.setDisabled(True)
-        self.ui.DoneDis.setStyleSheet("background-color : green")
-        self.notpaused = True
             
     
     def DistanceReset(self):
@@ -273,10 +237,19 @@ class MyWidget(QWidget):
         """Init tracker Button click listener. """
         rospy.loginfo("Sending error info stuff")
         
-        # get distance and direction for the task
-        dis = int(self.ui.TaskDistance.text())
-        direct1 = int(self.ui.TaskDirection1.text())
-        direct2 = int(self.ui.TaskDirection2.text())
+        u = float(self.ui.Dim1Val.text()) if self.ui.Dim1Val.text() else 0.0
+        v = float(self.ui.Dim2Val.text()) if self.ui.Dim2Val.text() else 0.0
+
+        self.Distance1.reference_distance_u = u
+        self.Distance1.reference_distance_v = v
+        self.Distance2.reference_distance_u = u
+        self.Distance2.reference_distance_v = v
+
+        dis = float(self.ui.TaskDistance.text()) if self.ui.TaskDistance.text() else 0.0
+
+        direct1 = int(self.ui.TaskDirection1.text()) if self.ui.TaskDirection1.text() else 0
+        direct2 = int(self.ui.TaskDirection2.text()) if self.ui.TaskDirection2.text() else 0
+
         self.Distance1.desired_distance = dis
         self.Distance1.direction = direct1
         self.Distance2.desired_distance = dis
@@ -287,7 +260,6 @@ class MyWidget(QWidget):
         self.error_req2.distance_info = self.Distance2
         self.error_req_pub.publish(self.error_req1)
         if not self.ui.CamLimiter.isChecked():
-
             self.error_req_pub.publish(self.error_req2)
         
         # update GUI
@@ -308,12 +280,19 @@ class MyWidget(QWidget):
         self.trackersDisable(True)
         self.initDisable(True)
         self.goDisable(True)
+
         rospy.loginfo(self.error_req1.components)
         rospy.loginfo(self.error_req2.components)
         self.error_req1 = ErrorDefinition()
         self.error_req2 = ErrorDefinition()
+        self.pointsplaced1 = len(self.error_req1.components)
+        self.pointsplaced2 = len(self.error_req2.components)
+        self.notpaused = True
         self.trackers_placed = 0
         self.TrackerType = None
+        self.ui.im_1.mouseReleaseEvent = self.temp1
+        self.ui.im_2.mouseReleaseEvent = self.temp2
+
         for i in self.buttons:
             i.setStyleSheet("background-color : none")
 
