@@ -70,9 +70,9 @@ class ErrorInfo:
             cv2.circle(img, p1, 0, color=(self.b, self.g, self.r), thickness=10)
             cv2.line(img, p2, p3, color=(self.b, self.g, self.r), thickness=10)
             
+        # draw reference points if any
         if self.dist_ref_pts is not None:
             for pt in self.dist_ref_pts:
-                rospy.loginfo(f"POINT {pt}")
                 cv2.circle(img, (int(pt[0]), int(pt[1])), 5, (255, 0, 0), 3)
                 
 
@@ -160,8 +160,8 @@ class TrackingNode:
         Args:
             data (ErrorDefinition): error definition to implement
         """
-        rospy.loginfo("Error Request Init")
         cam_idx = data.cam_idx
+        rospy.loginfo(f"Error Request Init - {cam_idx}")
         
         # TEMP: ignore certain indexes
         # if cam_idx != 0: return
@@ -170,6 +170,7 @@ class TrackingNode:
         components = data.components
         distance_definition: DistanceDefinition = data.distance_info
         dist_valid = len(distance_definition.plane_points) == 4 and distance_definition.desired_distance != 0
+        dist_ref_pts = None
         
         if err_type == "ptpt":
             # assume we have 2 points
@@ -216,6 +217,8 @@ class TrackingNode:
             xy2 = sy.Matrix([x2, y2, 1])
             xy3 = sy.Matrix([x3, y3, 1])
             error = xy1.dot(xy2.cross(xy3))
+            
+            
             
             # assume either point or line is fixed for simplicity for now
             if components[0].type == "fp" or components[1].type == "fp":
@@ -304,9 +307,9 @@ class TrackingNode:
             a1 = np.array([point[0], point[1], 1])
             if distance_info.direction in (0, 2):
                 # get reference distance in the direction we want
+                D = distance_info.reference_distance_u
                 
                 # calculate p_t based on parallel assumption
-                D = distance_info.reference_distance_u
                 search_line = np.cross(a1, v1)
                 v3_finder = np.cross(p4, a1)
                 v3 = np.cross(v3_finder, vl)
@@ -323,9 +326,9 @@ class TrackingNode:
                 
                 # calculate p_t based on parallel assumption
                 search_line = np.cross(a1, v2)
-                v3_finder = np.cross(p4, a1)
+                v3_finder = np.cross(p3, a1)
                 v3 = np.cross(v3_finder, vl)
-                pt_finder = np.cross(p1, v3)
+                pt_finder = np.cross(p2, v3)
                 p_t = np.cross(search_line, pt_finder)
                 p_t = p_t / p_t[2]
                 
@@ -344,48 +347,56 @@ class TrackingNode:
             # TODO: we may not need epsilon, do some testing?
             
             # determine cr1
+            rospy.loginfo(f"{a1} - {p_t} - {v}")
             d_a1_pt = np.linalg.norm(a1[:2] - p_t[:2])
-            d_aeps_v1 = np.linalg.norm(a1[:2] - v[:2]) + epsilon # increase distance by epsilon to avoid zeros
+            d_aeps_v = np.linalg.norm(a1[:2] - v[:2]) + epsilon # increase distance by epsilon to avoid zeros
             d_pt_aeps = np.linalg.norm(a1[:2] - p_t[:2]) + epsilon
-            d_a1_v1 = np.linalg.norm(a1[:2] - v[:2])
-            cr1 = (d_a1_pt * d_aeps_v1) / (d_pt_aeps * d_a1_v1)
+            d_a1_v = np.linalg.norm(a1[:2] - v[:2])
+            cr1 = (d_a1_pt * d_aeps_v) / (d_pt_aeps * d_a1_v)
             
             # determine distances related to cr2
             d_a1_s2 = np.linalg.norm(a1[:2] - p_t[:2])
-            d_pt_v1 = np.linalg.norm(p_t[:2] - v[:2])
+            d_pt_v = np.linalg.norm(p_t[:2] - v[:2])
             
             d_star = distance_info.desired_distance
             
-            rospy.loginfo(f"{D} - {cr1} - {d_pt_v1}")
-            D_star = (d_star * d_a1_s2) / ((D / cr1) * d_pt_v1)
-            p = (d_a1_v1 * D_star) / (D_star + 1)
+            rospy.loginfo(f"{d_a1_pt} - {d_pt_v} - {d_a1_v}")
+            D_star = (d_star * d_a1_s2) / ((D / cr1) * d_pt_v)
+            
+            # p if moving towards vanishing point
+            p_towards = (d_a1_v * D_star) / (D_star + 1)
+            
+            # p if moving away from vanishing point
+            p_away = (d_a1_v * D_star) / (D_star - 1)
+            
+            rospy.loginfo(f"P_towards: {p_towards}, P_away: {p_away}")
             
             # get the unit vector between the point "a" and point "v"
-            unit_vec = [(v[0] - a1[0])/d_aeps_v1, (v[1] - a1[1])/d_aeps_v1]
+            unit_vec = [(v[0] - a1[0])/d_aeps_v, (v[1] - a1[1])/d_aeps_v]
             
             # depending on the direction, we now need to move along the vector.
             # however, the direction depends on a) what direction we want and b) which direction the line towards
             # the vanishing point actually leads us
             if direction == 0: # positive x
-                if v1[0] > a1[0]: # vanishing point goes right, follow it
-                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+                if v[0] > a1[0]: # vanishing point goes right, follow it
+                    p_img = [a1[0] + unit_vec[0] * p_towards, a1[1] + unit_vec[1] * p_towards]
                 else: # vanishing point goes left, we want positive, so we go negative.
-                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+                    p_img = [a1[0] + unit_vec[0] * p_away, a1[1] + unit_vec[1] * p_away]
             elif direction == 1: # positive y
-                if v2[1] > a1[1]: # vanishing point down, don't follow
-                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+                if v[1] > a1[1]: # vanishing point down, don't follow
+                    p_img = [a1[0] + unit_vec[0] * p_away, a1[1] - unit_vec[1] * p_away]
                 else: # vanishing point up, follow
-                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+                    p_img = [a1[0] + unit_vec[0] * p_towards, a1[1] + unit_vec[1] * p_towards]
             elif direction == 2: # negative x
-                if v1[0] > a1[0]: # vanishing point left, want positive, so go right
-                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+                if v[0] > a1[0]: # vanishing point left, want positive, so go right
+                    p_img = [a1[0] + unit_vec[0] * p_away, a1[1] + unit_vec[1] * p_away]
                 else: # vanishing point goes left, we follow it
-                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+                    p_img = [a1[0] + unit_vec[0] * p_towards, a1[1] + unit_vec[1] * p_towards]
             elif direction == 3: # negative y
-                if v2[1] > a1[1]: # vanishing point down, follow
-                    p_img = [a1[0] + unit_vec[0] * p, a1[1] + unit_vec[1] * p]
+                if v[1] > a1[1]: # vanishing point down, follow
+                    p_img = [a1[0] + unit_vec[0] * p_towards, a1[1] + unit_vec[1] * p_towards]
                 else: # vanishing point up, don't follow
-                    p_img = [a1[0] - unit_vec[0] * p, a1[1] - unit_vec[1] * p]
+                    p_img = [a1[0] + unit_vec[0] * p_away, a1[1] + unit_vec[1] * p_away]
             
             new_pts.append(p_img)
             rospy.loginfo(f"OLD: {point}, NEW: {p_img}")

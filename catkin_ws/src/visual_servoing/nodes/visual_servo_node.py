@@ -167,6 +167,7 @@ class VisualServoing:
             move[i] = delta
             self.move(move)
             
+            rospy.sleep(0.2)
             after_error = self.latest_error
             rospy.loginfo(f"ERROR BEFORE: {initial_error}")
             rospy.loginfo(f"ERROR AFTER: {after_error}")
@@ -211,20 +212,37 @@ class VisualServoing:
         # this is so that as error decreases, we step in larger amounts towards the target.
         initial_error = np.linalg.norm(self.latest_error)
         initial_stepsize = step_size
+        error_increased_ct = 0
+        prev_error = initial_error
         
         for i in range(max_it):
             self.broyden_update()
             
             # calculate new stepsize, and move.
             step = (initial_stepsize / (1 / initial_error)) * (1 / np.linalg.norm(self.latest_error))
-            step = min(step, 0.1)
+            step = max(0.0, min(step, 0.15))
             rospy.loginfo(f"STEP: {step}")
             delta_move = self.get_move(step)[0]
             rospy.loginfo(f"DELTA MOVE: {delta_move}")
             rospy.loginfo(f"LAST ERROR: {self.latest_error}")
             
+            
             self.move(delta_move)
             rospy.sleep(0.5)
+            
+            if np.linalg.norm(self.latest_error) > np.linalg.norm(prev_error):
+                error_increased_ct += 1
+                if error_increased_ct > 5:
+                    self.update_jacobian()
+                    error_increased_ct = 0
+            else:
+                error_increased_ct = 0
+                
+            prev_error = self.latest_error
+            
+            if np.linalg.norm(delta_move) < 0.001:
+                rospy.loginfo("Servoing stopped due to negligable delta move.")
+                return
             
             if np.linalg.norm(self.latest_error) < self.threshold:
                 rospy.loginfo(f"Servoing converged after {i} iterations")
@@ -236,7 +254,7 @@ class VisualServoing:
 def main(args):
     rospy.sleep(3) # this node seems to need a sleep to start properly in tmux, not sure why, TODO: try to fix.
     rospy.loginfo("Starting vs node...")
-    node = VisualServoing(learn_rate=0.2, step_size=0.05, max_it=100, threshold=5, num_joints=4)
+    node = VisualServoing(learn_rate=0.5, step_size=0.05, max_it=100, threshold=10, num_joints=4)
     
     try:
         rospy.spin()

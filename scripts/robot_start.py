@@ -15,9 +15,9 @@ if __name__ == "__main__":
     terminals = {
         "rqt": "rqt",
         "kortex_bringup": "roslaunch kortex_bringup kortex_bringup.launch", # launch kortex - note that this starts a roscore
-        "camera1": "rosrun camera_node camera_node.py _cam_idx:=0", # TODO: change this to take in idx somehow. 
-        "camera2": "rosrun camera_node camera_node.py _cam_idx:=2", # TODO: change this to take in idx somehow. 
-        "tracking": "rosrun camera_node tracking_node.py _idxs:=\"[0, 2]\"", 
+        "camera1": "rosrun camera_node camera_node.py _cam_idx:=1", # TODO: change this to take in idx somehow. 
+        "camera2": "rosrun camera_node camera_node.py _cam_idx:=4", # TODO: change this to take in idx somehow. 
+        "tracking": "rosrun camera_node tracking_node.py _idxs:=\"[1, 4]\"", 
         "visual_servoing": "rosrun visual_servoing visual_servo_node.py"
     }
     

@@ -27,12 +27,12 @@ class MyWidget(QWidget):
         self.TrackerType = None # 0 1 2 3 fp fl tp tl
         self.load_ui()
 
-        self.camIndices = [0,1] 
-        '''self.camIndices = []
+        # self.camIndices = [0,1] 
+        self.camIndices = []
         cam_idx_sub = rospy.Subscriber("/cam_idx", Int32, self.idx_cb)
         while len(self.camIndices) < 2:
             continue
-        cam_idx_sub.unregister()'''
+        cam_idx_sub.unregister()
         
         rospy.loginfo(f"Cam Indices: {self.camIndices}")
 
@@ -71,10 +71,10 @@ class MyWidget(QWidget):
         self.initDisable(True)
         self.goDisable(True)
 
-        #self.imSub1 = rospy.Subscriber("/cameras/cam%s" % (self.camIndices[0]), Image, self.updateIm1)
-        #self.imSub2 = rospy.Subscriber("/cameras/cam%s" % (self.camIndices[1]), Image, self.updateIm2)
-        self.imSub1 = rospy.Subscriber("img_pub_node", Image, self.updateIm1)
-        self.imSub2 = rospy.Subscriber("img_pub_node", Image, self.updateIm2)
+        self.imSub1 = rospy.Subscriber("/cameras/cam%s" % (self.camIndices[0]), Image, self.updateIm1)
+        self.imSub2 = rospy.Subscriber("/cameras/cam%s" % (self.camIndices[1]), Image, self.updateIm2)
+        # self.imSub1 = rospy.Subscriber("img_pub_node", Image, self.updateIm1)
+        # self.imSub2 = rospy.Subscriber("img_pub_node", Image, self.updateIm2)
 
         self.sizeSet = False
         self.sizeSet1 = False
@@ -126,11 +126,13 @@ class MyWidget(QWidget):
 
         self.ui.PlaceTrackers.setStyleSheet("background-color : green")
 
-        #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-        #msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+        self.ui.PlaceTrackers.setStyleSheet("background-color : green")
 
-        msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-        msg2 = rospy.wait_for_message("img_pub_node", Image) 
+        msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+        msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+
+        # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+        # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
         cv2_img1 = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
         cv2_img1 = cv2.cvtColor(cv2_img1, cv2.COLOR_BGR2RGB)
@@ -268,10 +270,10 @@ class MyWidget(QWidget):
         self.initDisable(True)
         self.ResetButtonClick()
         self.goDisable(False)
-        #self.imSub1.unregister()
-        #self.imSub1 = rospy.Subscriber("/cameras/cam%s/tracked_points" % (self.camIndices[0]), Image, self.updateIm1)
-        #self.imSub2.unregister()
-        #self.imSub2 = rospy.Subscriber("/cameras/cam%s/tracked_points" % (self.camIndices[1]), Image, self.updateIm2)
+        self.imSub1.unregister()
+        self.imSub1 = rospy.Subscriber("/cameras/cam%s/tracked_points" % (self.camIndices[0]), Image, self.updateIm1)
+        self.imSub2.unregister()
+        self.imSub2 = rospy.Subscriber("/cameras/cam%s/tracked_points" % (self.camIndices[1]), Image, self.updateIm2)
 
     def ResetButtonClick(self):
         """Reset any progress."""
@@ -310,11 +312,11 @@ class MyWidget(QWidget):
             self.trackers_placed += 1
             self.notpaused = False
             
-            #msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
-            #msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
+            msg1 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[0]), Image)
+            msg2 = rospy.wait_for_message("/cameras/cam%s" % (self.camIndices[1]), Image)
 
-            msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
-            msg2 = rospy.wait_for_message("img_pub_node", Image) 
+            # msg1 = rospy.wait_for_message("img_pub_node", Image) # subscribe to the whatsapp topic and get the message
+            # msg2 = rospy.wait_for_message("img_pub_node", Image) 
 
             cv2_img1 = self.bridge.imgmsg_to_cv2(msg1, "bgr8")
             cv2_img1 = cv2.cvtColor(cv2_img1, cv2.COLOR_BGR2RGB)
