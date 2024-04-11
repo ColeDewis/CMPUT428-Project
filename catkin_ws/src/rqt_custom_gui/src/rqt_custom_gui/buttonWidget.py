@@ -366,6 +366,8 @@ class MyWidget(QWidget):
                 self.distance1inprog = False
                 if not self.distance2inprog:
                     self.notpaused = True
+        if self.ui.im_1.mouseReleaseEvent == None:
+            self.ui.im_1.mouseReleaseEvent = self.temp1
 
         
 
@@ -395,6 +397,8 @@ class MyWidget(QWidget):
                 self.distance2inprog = False
                 if not self.distance1inprog:
                     self.notpaused = True
+        if self.ui.im_1.mouseReleaseEvent == None:
+            self.ui.im_1.mouseReleaseEvent = self.temp1
 
     def setImLayouts(self,w,h, f):
         if f == 1:
