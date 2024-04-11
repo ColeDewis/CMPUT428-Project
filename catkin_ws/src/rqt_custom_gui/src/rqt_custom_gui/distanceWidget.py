@@ -81,7 +81,7 @@ class DistancePlace(QWidget):
             
 
     def drawPoint(self, x, y):
-        self.im = cv2.circle(self.im, (round(x),round(y)), 3, (255,0,0), 5) 
+        self.im = cv2.circle(self.im, (round(x),round(y)), 3, (255,0,0), -1) 
         self.setImage()
 
 

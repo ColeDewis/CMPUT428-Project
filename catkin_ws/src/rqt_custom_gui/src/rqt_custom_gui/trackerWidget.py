@@ -99,7 +99,7 @@ class TrackerPlace(QWidget):
 
 
     def drawPoint(self, x, y):
-        self.im = cv2.circle(self.im, (round(x),round(y)), 3, (255,0,0), 5) 
+        self.im = cv2.circle(self.im, (round(x),round(y)), 3, (255,0,0), -1) 
         self.setImage()
 
 
@@ -144,4 +144,5 @@ class TrackerPlace(QWidget):
             self.track_req.points.append(pt2d)
         self.error_req.components.append(self.track_req)
         self.img_label.mouseReleaseEvent = None
+        print(self.img_label.mouseReleaseEvent)
         
