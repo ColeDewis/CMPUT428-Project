@@ -1,2 +1,2 @@
-# Camera Node
-Very basic camera node for ROS. Run it with `rosrun camera_node camera_node.py _cam_idx:=<camera index>`
+# Custom Messages
+Custom message types used for communication throughout the project. Defines messages to define error functions and distances to the tracking node, as well as error messages for visual servoing.
